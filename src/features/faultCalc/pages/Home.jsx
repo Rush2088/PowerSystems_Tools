@@ -3,13 +3,12 @@ import { useMemo, useState } from 'react';
 import ResultsCard from '../components/ResultsCard';
 import {
   DEFAULT_VALUES,
-  calculateSequenceImpedance,
+  calculateFaultLevel,
   validateInputs,
 } from '../utils/faultUtils';
 
 export default function Home() {
   const [values, setValues] = useState(DEFAULT_VALUES);
-  const [step, setStep] = useState(1);
 
   const { result, error } = useMemo(() => {
     const validation = validateInputs(values);
@@ -18,18 +17,37 @@ export default function Home() {
       return { result: null, error: validation.message };
     }
 
-    const { V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG } = validation.parsed;
+    const {
+      gridKA,
+      hvKV,
+      lvKV,
+      txMVA,
+      txZ,
+      cFactor,
+      considerKFactor,
+      addInverterContribution,
+      inverterMVA,
+      inverterCount,
+      inverterMaxCurrentFactor,
+    } = validation.parsed;
 
     return {
-      result: calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG),
+      result: calculateFaultLevel(
+        gridKA,
+        hvKV,
+        lvKV,
+        txMVA,
+        txZ,
+        cFactor,
+        considerKFactor,
+        addInverterContribution,
+        inverterMVA,
+        inverterCount,
+        inverterMaxCurrentFactor,
+      ),
       error: '',
     };
   }, [values]);
-
-  function handleReset() {
-    setValues(DEFAULT_VALUES);
-    setStep(1);
-  }
 
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
@@ -41,15 +59,13 @@ export default function Home() {
           ← Home
         </Link>
       </div>
+
       <div className="mx-auto max-w-[920px]">
         <ResultsCard
           values={values}
           setValues={setValues}
           result={result}
           error={error}
-          step={step}
-          setStep={setStep}
-          onReset={handleReset}
         />
       </div>
     </main>
