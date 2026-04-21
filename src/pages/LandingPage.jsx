@@ -12,9 +12,9 @@ function ToolCard({ title, description, primary = false, onClick }) {
       }
     >
       <div className="text-2xl font-extrabold tracking-tight">{title}</div>
-      <div className={primary ? 'mt-2 text-sm font-medium text-slate-900/80' : 'mt-2 text-sm text-slate-300'}>
-        {description}
-      </div>
+      <div className="mt-2 text-xs italic text-slate-300">
+  {description}
+</div>
     </button>
   );
 }
@@ -43,7 +43,7 @@ export default function LandingPage() {
           />
           <ToolCard
             title="Grid Impedance Calculator"
-            description="Calculate positive- and zero-sequence source impedance from LLL and LG fault levels."
+            description="Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels."
             onClick={() => navigate('/grid-impedance')}
           />
         </div>
