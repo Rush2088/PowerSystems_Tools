@@ -8,8 +8,10 @@ function EditableCard({ label, unit, children }) {
   return (
     <div className="summary-chip">
       <div className="summary-label">{label}</div>
-      <div className="summary-input-wrap">{children}</div>
-      <span className="unit-base">{unit}</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="summary-input-wrap flex-none">{children}</div>
+        <span className="unit-base shrink-0">{unit}</span>
+      </div>
     </div>
   );
 }
@@ -92,7 +94,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
         <div className="flex flex-col gap-3 sm:gap-4">
           <EditableCard label="Grid Fault Current" unit="kA">
             <input
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
               step="any"
               value={values.gridKA}
@@ -102,12 +104,16 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
           <EditableCard label="C-Factor" unit="">
             <select
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.cFactor}
               onChange={(e) => updateField("cFactor", e.target.value)}
             >
               {C_FACTOR_OPTIONS.map((v) => (
-                <option key={v.value} value={v.value} className="bg-slate-900 text-white">
+                <option
+                  key={v.value}
+                  value={v.value}
+                  className="bg-slate-900 text-white"
+                >
                   {v.label}
                 </option>
               ))}
@@ -116,12 +122,16 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
           <EditableCard label="HV Bus Voltage" unit="kV">
             <select
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.hvKV}
               onChange={(e) => updateField("hvKV", e.target.value)}
             >
               {HV_VOLTAGE_OPTIONS.map((v) => (
-                <option key={v.value} value={v.value} className="bg-slate-900 text-white">
+                <option
+                  key={v.value}
+                  value={v.value}
+                  className="bg-slate-900 text-white"
+                >
                   {v.label}
                 </option>
               ))}
@@ -130,12 +140,16 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
           <EditableCard label="LV Bus Voltage" unit="kV">
             <select
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.lvKV}
               onChange={(e) => updateField("lvKV", e.target.value)}
             >
               {LV_VOLTAGE_OPTIONS.map((v) => (
-                <option key={v.value} value={v.value} className="bg-slate-900 text-white">
+                <option
+                  key={v.value}
+                  value={v.value}
+                  className="bg-slate-900 text-white"
+                >
                   {v.label}
                 </option>
               ))}
@@ -146,7 +160,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
         <div className="flex flex-col gap-3 sm:gap-4">
           <EditableCard label="Transformer Rating" unit="MVA">
             <input
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
               step="any"
               value={values.txMVA}
@@ -156,7 +170,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
           <EditableCard label="Transformer Impedance" unit="%">
             <input
-              className="input-inline"
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
               step="any"
               value={values.txZ}
@@ -168,7 +182,11 @@ export default function ResultsCard({ values, setValues, result, error }) {
             label="Consider Transformer K-Factor"
             checked={values.considerKFactor}
             onChange={(checked) => updateField("considerKFactor", checked)}
-            note={`Kₜ = ${kTDisplay}`}
+            note={
+              <>
+                K<sub>t</sub> = {kTDisplay}
+              </>
+            }
           />
 
           <CheckboxCard
@@ -182,7 +200,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
             <>
               <EditableCard label="Inverter Rating" unit="MVA">
                 <input
-                  className="input-inline"
+                  className="input-inline w-[6.5rem] sm:w-[7rem]"
                   type="number"
                   step="any"
                   value={values.inverterMVA}
@@ -192,7 +210,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
               <EditableCard label="No. of Inverters" unit="">
                 <input
-                  className="input-inline"
+                  className="input-inline w-[6.5rem] sm:w-[7rem]"
                   type="number"
                   step="1"
                   min="1"
@@ -203,7 +221,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
 
               <EditableCard label="FRT Max Current Factor" unit="">
                 <input
-                  className="input-inline"
+                  className="input-inline w-[6.5rem] sm:w-[7rem]"
                   type="number"
                   step="any"
                   value={values.inverterMaxCurrentFactor}
