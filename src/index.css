@@ -27,8 +27,8 @@ body {
   background: #1f2328;
   background-image:
     radial-gradient(circle at 15% 20%, rgba(255,255,255,0.06), transparent 30%),
-    radial-gradient(circle at 85% 15%, rgba(79,140,255,0.10), transparent 25%),
-    radial-gradient(circle at 70% 80%, rgba(255,214,102,0.10), transparent 25%),
+    radial-gradient(circle at 85% 15%, rgba(251,146,60,0.12), transparent 25%),
+    radial-gradient(circle at 70% 80%, rgba(251,191,36,0.10), transparent 25%),
     repeating-linear-gradient(
       0deg,
       rgba(255,255,255,0.015) 0px,
@@ -54,13 +54,10 @@ input[type="number"] {
 
 /* ===== Component Styles ===== */
 @layer components {
-
-  /* Main card */
   .glass-card {
     @apply rounded-3xl border border-white/10 bg-white/[0.10] backdrop-blur-md shadow-xl;
   }
 
-  /* ===== INPUT ROW ===== */
   .summary-chip {
     @apply flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.05] p-4;
   }
@@ -76,7 +73,7 @@ input[type="number"] {
 
   .input-inline {
     @apply w-full rounded-lg border border-white/5 bg-black/30 px-4 py-2 text-right text-base font-semibold text-white outline-none transition
-           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40;
+           focus:border-orange-400 focus:ring-2 focus:ring-orange-400/40;
   }
 
   .unit-base {
@@ -85,7 +82,6 @@ input[type="number"] {
     text-align: right;
   }
 
-  /* ===== CHECKBOX ===== */
   .summary-chip-checkbox {
     @apply flex flex-col items-start gap-1 rounded-xl border border-white/10 bg-white/[0.05] p-4;
   }
@@ -110,26 +106,26 @@ input[type="number"] {
     color: rgb(148 163 184);
   }
 
-  /* ===== RESULT CARDS ===== */
   .result-tile {
     @apply flex min-h-[88px] flex-col justify-center rounded-xl border p-4 bg-transparent;
   }
 
-  /* orange outline */
   .result-tile-alert {
     @apply border-orange-400;
     box-shadow: 0 0 12px rgba(251, 146, 60, 0.25);
   }
 
-  /* highlighted main result */
   .result-tile-primary {
     @apply border-orange-400 bg-orange-500/20 shadow-lg;
     box-shadow: 0 0 18px rgba(251, 146, 60, 0.35);
   }
 
-  /* Divider */
   .divider {
     @apply my-5 border-t border-slate-500/50 sm:my-6;
+  }
+
+  .primary-action-button {
+    @apply inline-flex items-center justify-center rounded-2xl bg-orange-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 

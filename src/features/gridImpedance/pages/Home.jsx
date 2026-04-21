@@ -36,7 +36,7 @@ export default function Home() {
       <div className="mx-auto mb-4 flex max-w-[920px] items-center justify-between">
         <Link
           to="/"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+          className="primary-action-button px-6 py-3 text-base"
         >
           ← Home
         </Link>

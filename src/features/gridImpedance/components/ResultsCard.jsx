@@ -149,8 +149,8 @@ export default function ResultsCard({
       </div>
 
       <div className="mb-4 flex items-center gap-2">
-        <div className={step >= 1 ? 'h-2 flex-1 rounded-full bg-cyan-400' : 'h-2 flex-1 rounded-full bg-white/10'} />
-        <div className={step >= 2 ? 'h-2 flex-1 rounded-full bg-cyan-400' : 'h-2 flex-1 rounded-full bg-white/10'} />
+        <div className={step >= 1 ? 'h-2 flex-1 rounded-full bg-orange-400' : 'h-2 flex-1 rounded-full bg-white/10'} />
+        <div className={step >= 2 ? 'h-2 flex-1 rounded-full bg-orange-400' : 'h-2 flex-1 rounded-full bg-white/10'} />
       </div>
 
       <div className="mb-5 text-sm font-medium text-slate-300">
@@ -232,7 +232,7 @@ export default function ResultsCard({
                   onClick={handleCopy}
                   className={`inline-flex min-w-[110px] items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition ${
                     copyStatus === 'copied'
-                      ? 'text-cyan-400'
+                      ? 'text-orange-400'
                       : 'text-white hover:bg-white/10'
                   }`}
                 >
@@ -264,7 +264,7 @@ export default function ResultsCard({
                       {summaryRows.map((section) => (
                         <Fragment key={section.section}>
                           <tr className="border-t border-white/10 bg-white/[0.04]">
-                            <td colSpan={3} className="px-2 py-1.5 font-semibold text-cyan-300">
+                            <td colSpan={3} className="px-2 py-1.5 font-semibold text-orange-300">
                               {section.section}
                             </td>
                           </tr>
@@ -308,7 +308,7 @@ export default function ResultsCard({
             type="button"
             onClick={handleNext}
             disabled={!canProceed}
-            className="rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+            className="primary-action-button"
           >
             Next
           </button>
@@ -316,7 +316,7 @@ export default function ResultsCard({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-2xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+            className="primary-action-button"
           >
             Reset
           </button>
