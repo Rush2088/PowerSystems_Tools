@@ -131,18 +131,38 @@ input[type="number"] {
 
 /* ===== Mobile ===== */
 @media (max-width: 640px) {
+
+  /* Make cards tighter */
   .summary-chip {
-    @apply flex-col items-stretch gap-2;
+    @apply flex-col items-stretch gap-1.5 px-3 py-2;
   }
 
-  .summary-label,
+  /* Reduce label size + spacing */
+  .summary-label {
+    @apply text-sm;
+    margin-bottom: 2px;
+  }
+
+  /* Keep layout fluid */
   .summary-input-wrap,
   .unit-base {
     width: 100%;
     min-width: 0;
   }
 
+  /* Units aligned left */
   .unit-base {
+    @apply text-xs;
     text-align: left;
+  }
+
+  /* Make inputs smaller */
+  .input-inline {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  /* Checkbox cards tighter too */
+  .summary-chip-checkbox {
+    @apply px-2 py-1.5;
   }
 }
