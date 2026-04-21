@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
+import { Home as HomeIcon } from "lucide-react";
 import ResultsCard from '../components/ResultsCard';
 import {
   DEFAULT_VALUES,
@@ -52,12 +53,13 @@ export default function Home() {
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
       <div className="mx-auto mb-4 flex max-w-[920px] items-center justify-between">
-        <Link
-          to="/"
-          className="primary-action-button px-6 py-3 text-base"
-        >
-          ← Home
-        </Link>
+<Link
+  to="/"
+  className="primary-action-button px-5 py-3 flex items-center gap-2 text-base"
+>
+  <HomeIcon size={20} />
+  <span>Home</span>
+</Link>
       </div>
 
       <div className="mx-auto max-w-[920px]">
