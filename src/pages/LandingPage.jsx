@@ -38,7 +38,7 @@ export default function LandingPage() {
           <ToolCard
             title="Fault Level Calculator"
             description="IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution."
-            primary
+            // primary
             onClick={() => navigate('/fault-calc')}
           />
           <ToolCard
