@@ -27,8 +27,8 @@ body {
   background: #1f2328;
   background-image:
     radial-gradient(circle at 15% 20%, rgba(255,255,255,0.06), transparent 30%),
-    radial-gradient(circle at 85% 15%, rgba(251,146,60,0.12), transparent 25%),
-    radial-gradient(circle at 70% 80%, rgba(251,191,36,0.10), transparent 25%),
+    radial-gradient(circle at 85% 15%, rgba(79,140,255,0.10), transparent 25%),
+    radial-gradient(circle at 70% 80%, rgba(255,214,102,0.10), transparent 25%),
     repeating-linear-gradient(
       0deg,
       rgba(255,255,255,0.015) 0px,
@@ -73,7 +73,7 @@ input[type="number"] {
 
   .input-inline {
     @apply w-full rounded-lg border border-white/5 bg-black/30 px-4 py-2 text-right text-base font-semibold text-white outline-none transition
-           focus:border-orange-400 focus:ring-2 focus:ring-orange-400/40;
+           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40;
   }
 
   .unit-base {
@@ -98,7 +98,7 @@ input[type="number"] {
   .checkbox-row input[type="checkbox"] {
     width: 1rem;
     height: 1rem;
-    accent-color: rgb(251 146 60);
+    accent-color: rgb(34 211 238);
   }
 
   .checkbox-note {
@@ -111,13 +111,13 @@ input[type="number"] {
   }
 
   .result-tile-alert {
-    @apply border-orange-400;
-    box-shadow: 0 0 12px rgba(251, 146, 60, 0.25);
+    @apply border-cyan-400;
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
   }
 
   .result-tile-primary {
-    @apply border-orange-400 bg-orange-500/20 shadow-lg;
-    box-shadow: 0 0 18px rgba(251, 146, 60, 0.35);
+    @apply border-cyan-400 bg-cyan-500/20 shadow-lg;
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
   }
 
   .divider {
@@ -125,7 +125,7 @@ input[type="number"] {
   }
 
   .primary-action-button {
-    @apply inline-flex items-center justify-center rounded-2xl bg-orange-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-orange-300 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 
