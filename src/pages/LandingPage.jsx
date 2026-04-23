@@ -121,17 +121,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Keyboard hint */}
-        <div className="mt-4 flex items-center gap-2 text-[11px] text-slate-500">
-          <span className="rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-400">↑ ↓ ← →</span>
-          <span>to select</span>
-          <span className="rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-400">↵ Enter</span>
-          <span>to open</span>
-          <span className="rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-400">Esc</span>
-          <span>to deselect</span>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-5">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-5">
           {TOOLS.map((tool, i) => (
             <ToolCard
               key={tool.route}
