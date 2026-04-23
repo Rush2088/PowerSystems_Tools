@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { EC_OPTIONS, TYPICAL_GAPS } from '../utils/arcFlashCalc';
 import IEChart from './IEChart';
 
-// ── Reusable input primitives (same pattern as faultCalc) ─────────────────────
+// ── Reusable input primitives ─────────────────────────────────────────────────
 
 function EditableCard({ label, unit, children }) {
   return (
@@ -61,6 +62,135 @@ const PPE_GLOW = {
   5: '0 0 14px rgba(185,28,28,0.5)',
 };
 
+// ── PPE definitions ───────────────────────────────────────────────────────────
+
+const PPE_DEFS = [
+  {
+    level: 0, label: 'Category 0', range: '< 1.2 cal/cm²',
+    color: 'text-emerald-400', border: 'border-emerald-400/40', bg: 'bg-emerald-400/5',
+    items: [
+      'Arc rated PPE not required.',
+      'Minimum PPE as per site O&M manual.',
+    ],
+  },
+  {
+    level: 1, label: 'Category 1', range: '≥ 1.2 – 4 cal/cm²',
+    color: 'text-yellow-400', border: 'border-yellow-400/40', bg: 'bg-yellow-400/5',
+    items: [
+      'Arc rated long sleeve shirt.',
+      'Arc rated pants or overall.',
+      'Arc rated face shield with hard hat.',
+      'Leather work shoes.',
+      'Safety glasses or safety goggles.',
+      'Hearing protection.',
+      'Leather & voltage rated gloves.',
+    ],
+  },
+  {
+    level: 2, label: 'Category 2', range: '> 4 – 8 cal/cm²',
+    color: 'text-orange-400', border: 'border-orange-400/40', bg: 'bg-orange-400/5',
+    items: [
+      'Arc rated long sleeve shirt.',
+      'Arc rated pants or overall.',
+      'Arc rated face shield & balaclava or arc flash suit with hard hat.',
+      'Leather work shoes.',
+      'Safety glasses or safety goggles.',
+      'Hearing protection.',
+      'Leather & voltage rated gloves.',
+    ],
+  },
+  {
+    level: 3, label: 'Category 3', range: '> 8 – 25 cal/cm²',
+    color: 'text-red-400', border: 'border-red-400/40', bg: 'bg-red-400/5',
+    items: [
+      'Arc rated long sleeve jacket.',
+      'Arc rated pants.',
+      'Arc rated flash hood with hard hat.',
+      'Leather work shoes.',
+      'Safety glasses.',
+      'Hearing protection.',
+      'Leather & voltage rated gloves.',
+    ],
+  },
+  {
+    level: 4, label: 'Category 4', range: '> 25 – 40 cal/cm²',
+    color: 'text-red-500', border: 'border-red-500/40', bg: 'bg-red-500/5',
+    items: [
+      'Arc rated long sleeve jacket.',
+      'Arc rated pants.',
+      'Arc rated flash hood with hard hat.',
+      'Leather work shoes.',
+      'Safety glasses.',
+      'Hearing protection.',
+      'Leather & voltage rated gloves.',
+    ],
+  },
+];
+
+// ── PPE Modal ─────────────────────────────────────────────────────────────────
+
+function PPEModal({ onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-slate-900 p-5 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-lg font-extrabold tracking-tight text-white">PPE Category Definitions</div>
+            <div className="mt-0.5 text-xs text-slate-400">IEEE 1584-2018 · Arc Flash Hazard PPE Requirements</div>
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-white/10 transition"
+          >
+            Close
+          </button>
+        </div>
+
+        {/* Category cards */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {PPE_DEFS.map(def => (
+            <div key={def.level} className={`rounded-xl border ${def.border} ${def.bg} p-3`}>
+              <div className="mb-1 flex items-baseline gap-2">
+                <span className={`text-base font-extrabold ${def.color}`}>{def.label}</span>
+                <span className="text-xs text-slate-400">{def.range}</span>
+              </div>
+              <ul className="space-y-0.5">
+                {def.items.map((item, i) => (
+                  <li key={i} className="flex gap-1.5 text-xs text-slate-300">
+                    <span className={`mt-0.5 shrink-0 ${def.color}`}>–</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {/* Danger notice */}
+          <div className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 sm:col-span-2">
+            <div className="mb-1 flex items-baseline gap-2">
+              <span className="text-base font-extrabold text-red-400">Danger — Exceeds Category 4</span>
+              <span className="text-xs text-slate-400">&gt; 40 cal/cm²</span>
+            </div>
+            <p className="text-xs text-slate-300">
+              Incident energy exceeds the limit of PPE Category 4. Standard PPE categories do not apply.
+              Engineering controls must be used to reduce arc flash hazard before work can proceed.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Result tiles ──────────────────────────────────────────────────────────────
+
 function ResultTile({ label, value, sub, highlight = false }) {
   return (
     <div className={highlight ? 'result-tile result-tile-primary' : 'result-tile result-tile-alert'}>
@@ -93,6 +223,8 @@ function SectionLabel({ children }) {
 // ── Main card ─────────────────────────────────────────────────────────────────
 
 export default function ArcFlashCard({ values, setValues, result, error }) {
+  const [showPPEModal, setShowPPEModal] = useState(false);
+
   function set(name, val) {
     setValues(prev => ({ ...prev, [name]: val }));
   }
@@ -105,6 +237,9 @@ export default function ArcFlashCard({ values, setValues, result, error }) {
 
   return (
     <section className="glass-card p-4 sm:p-5">
+
+      {/* PPE Modal */}
+      {showPPEModal && <PPEModal onClose={() => setShowPPEModal(false)} />}
 
       {/* ── Header ── */}
       <div className="mb-4 sm:mb-5">
@@ -124,7 +259,7 @@ export default function ArcFlashCard({ values, setValues, result, error }) {
       {/* ── Inputs grid ── */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
 
-        {/* Left column — arc flash & fault current */}
+        {/* Left column */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="summary-chip">
             <div className="summary-label">Electrode Config.</div>
@@ -155,7 +290,7 @@ export default function ArcFlashCard({ values, setValues, result, error }) {
           </EditableCard>
         </div>
 
-        {/* Right column — geometry & enclosure */}
+        {/* Right column */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <EditableCard label="Electrode Gap" unit="mm">
             <NumInput value={values.G_mm} onChange={v => set('G_mm', v)} min={6} max={250} />
@@ -192,37 +327,70 @@ export default function ArcFlashCard({ values, setValues, result, error }) {
         <>
           <div className="divider" />
 
-          {/* PPE Category tile */}
-          <div
-            className={`result-tile mb-3 border-2 ${PPE_BORDER[result.ppe.level]}`}
+          {/* PPE Category tile — clickable */}
+          <button
+            type="button"
+            onClick={() => setShowPPEModal(true)}
+            className={`result-tile mb-3 w-full border-2 text-left transition hover:brightness-110 ${PPE_BORDER[result.ppe.level]}`}
             style={{ boxShadow: PPE_GLOW[result.ppe.level] }}
           >
-            <div className="mb-0.5 text-sm text-slate-300">PPE Minimum Requirement</div>
+            <div className="mb-0.5 flex items-center justify-between">
+              <span className="text-sm text-slate-300">PPE Minimum Requirement</span>
+              <span className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-slate-400">
+                tap for definitions ↗
+              </span>
+            </div>
             <div className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
               {result.ppe.cat}
             </div>
-            {result.ppe.rating !== '> 40' && result.ppe.level > 0 && (
+            {result.ppe.level < 5 && result.ppe.level > 0 && (
               <div className="mt-0.5 text-xs text-slate-400">
                 Arc rating ≥ {result.ppe.rating} cal/cm²
               </div>
             )}
-          </div>
+          </button>
 
           {/* Main results: 3 columns */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <SectionLabel>Normal arcing current — Iarc = {fmt(result.Iarc)} kA</SectionLabel>
-            <ResultTile label="Incident Energy" value={`${fmt(result.E1_J)} J/cm²`} sub={`${fmt(result.E1_cal)} cal/cm²`} />
-            <ResultTile label="Arc Flash Boundary" value={`${fmt(result.AFB1, 0)} mm`} sub={`${(result.AFB1/1000).toFixed(3)} m`} />
+            <ResultTile
+              label="Incident Energy"
+              value={`${fmt(result.E1_cal)} cal/cm²`}
+              sub={`${fmt(result.E1_J)} J/cm²`}
+            />
+            <ResultTile
+              label="Arc Flash Boundary"
+              value={`${fmt(result.AFB1, 0)} mm`}
+              sub={`${(result.AFB1/1000).toFixed(3)} m`}
+            />
             <ResultTile label="Arcing Current" value={`${fmt(result.Iarc)} kA`} />
 
             <SectionLabel>Reduced arcing current — Iarc_min = {fmt(result.Iarc_min)} kA</SectionLabel>
-            <ResultTile label="Incident Energy" value={`${fmt(result.E2_J)} J/cm²`} sub={`${fmt(result.E2_cal)} cal/cm²`} />
-            <ResultTile label="Arc Flash Boundary" value={`${fmt(result.AFB2, 0)} mm`} sub={`${(result.AFB2/1000).toFixed(3)} m`} />
+            <ResultTile
+              label="Incident Energy"
+              value={`${fmt(result.E2_cal)} cal/cm²`}
+              sub={`${fmt(result.E2_J)} J/cm²`}
+            />
+            <ResultTile
+              label="Arc Flash Boundary"
+              value={`${fmt(result.AFB2, 0)} mm`}
+              sub={`${(result.AFB2/1000).toFixed(3)} m`}
+            />
             <ResultTile label="Reduced Arcing Current" value={`${fmt(result.Iarc_min)} kA`} />
 
-            <SectionLabel>Governing results</SectionLabel>
-            <ResultTile label="Incident Energy (governing)" value={`${fmt(result.E_J)} J/cm²`} sub={`${fmt(result.E_cal)} cal/cm²`} highlight />
-            <ResultTile label="Arc Flash Boundary (governing)" value={`${fmt(result.AFB, 0)} mm`} sub={`${(result.AFB/1000).toFixed(3)} m`} highlight />
+            <SectionLabel>Maximum (governing)</SectionLabel>
+            <ResultTile
+              label="Incident Energy"
+              value={`${fmt(result.E_cal)} cal/cm²`}
+              sub={`${fmt(result.E_J)} J/cm²`}
+              highlight
+            />
+            <ResultTile
+              label="Arc Flash Boundary"
+              value={`${fmt(result.AFB, 0)} mm`}
+              sub={`${(result.AFB/1000).toFixed(3)} m`}
+              highlight
+            />
           </div>
 
           <div className="divider" />
@@ -236,26 +404,6 @@ export default function ArcFlashCard({ values, setValues, result, error }) {
             <IntermediateTile label="Cat 2 (8 cal/cm²)"  value={`${fmt(result.minDist2, 0)} mm`} />
             <IntermediateTile label="Cat 3 (25 cal/cm²)" value={`${fmt(result.minDist3, 0)} mm`} />
             <IntermediateTile label="Cat 4 (40 cal/cm²)" value={`${fmt(result.minDist4, 0)} mm`} />
-          </div>
-
-          <div className="divider" />
-
-          {/* Intermediate values */}
-          <div className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-500">
-            Intermediate Values
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-            <IntermediateTile label="Enclosure Type"    value={result.encType} />
-            {result.EES  && <IntermediateTile label="EES"            value={`${fmt(result.EES, 2)} in`} />}
-            <IntermediateTile label="CF"               value={fmt(result.CF, 4)} />
-            <IntermediateTile label="VarCf"            value={fmt(result.VarCf, 5)} />
-            <IntermediateTile label="Iarc @ 600 V"    value={`${fmt(result.Ia600)} kA`} />
-            {result.Iarc > 0 && result.encType !== 'N/A' && (
-              <>
-                <IntermediateTile label="Iarc @ 2700 V"  value={`${fmt(result.Ia2700)} kA`} />
-                <IntermediateTile label="Iarc @ 14300 V" value={`${fmt(result.Ia14300)} kA`} />
-              </>
-            )}
           </div>
 
           {/* IE vs Distance chart */}

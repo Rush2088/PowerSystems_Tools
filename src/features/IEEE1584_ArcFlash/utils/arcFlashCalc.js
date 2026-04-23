@@ -239,11 +239,11 @@ function eq25LV(Voc, Ibf, Ia600) {
 // ── PPE category ──────────────────────────────────────────────────────────────
 
 export function ppeCategory(IE_calcm2) {
-  if (IE_calcm2 < 1.2)  return { cat:'Below AFB', rating:'< 1.2',  level:0 };
-  if (IE_calcm2 <= 4.0) return { cat:'Category 1', rating:'4',     level:1 };
-  if (IE_calcm2 <= 8.0) return { cat:'Category 2', rating:'8',     level:2 };
-  if (IE_calcm2 <= 25.0)return { cat:'Category 3', rating:'25',    level:3 };
-  if (IE_calcm2 <= 40.0)return { cat:'Category 4', rating:'40',    level:4 };
+  if (IE_calcm2 < 1.2)   return { cat:'Category 0', rating:'< 1.2', level:0 };
+  if (IE_calcm2 <= 4.0)  return { cat:'Category 1', rating:'4',     level:1 };
+  if (IE_calcm2 <= 8.0)  return { cat:'Category 2', rating:'8',     level:2 };
+  if (IE_calcm2 <= 25.0) return { cat:'Category 3', rating:'25',    level:3 };
+  if (IE_calcm2 <= 40.0) return { cat:'Category 4', rating:'40',    level:4 };
   return { cat:'Danger — Exceeds Cat 4', rating:'> 40', level:5 };
 }
 
