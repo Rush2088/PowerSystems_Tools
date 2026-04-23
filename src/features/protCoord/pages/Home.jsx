@@ -29,7 +29,7 @@ const TOPBAR_STYLE = {
 };
 
 // Chart area: warm off-white "iced coffee" tone
-const CHART_BG = '#f0ebe3';
+const CHART_BG = '#f8f7f5';
 
 export default function Home() {
   const [curves,    setCurves]    = useState(INIT_CURVES);

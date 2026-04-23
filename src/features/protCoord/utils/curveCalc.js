@@ -24,12 +24,12 @@ export const CC = {
 export const CURVE_TYPES = [...Object.keys(CC), "DT"];
 
 export const DEF_COLORS = [
-  'rgba(37,99,235,0.8)',   // blue-600
-  'rgba(220,38,38,0.8)',   // red-600
-  'rgba(22,163,74,0.8)',   // green-600
-  'rgba(234,88,12,0.8)',   // orange-600
-  'rgba(124,58,237,0.8)',  // violet-600
-  'rgba(8,145,178,0.8)',   // cyan-600
+  'rgba(96,165,250,0.7)',   // pastel blue-400
+  'rgba(248,113,113,0.7)', // pastel red-400
+  'rgba(52,211,153,0.7)',  // pastel emerald-400
+  'rgba(251,146,60,0.7)',  // pastel orange-400
+  'rgba(196,181,253,0.7)', // pastel violet-300
+  'rgba(45,212,191,0.7)',  // pastel teal-400
 ];
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
