@@ -23,7 +23,14 @@ export const CC = {
 
 export const CURVE_TYPES = [...Object.keys(CC), "DT"];
 
-export const DEF_COLORS = ["#22d3ee", "#f87171", "#4ade80", "#fb923c", "#a78bfa", "#38bdf8"];
+export const DEF_COLORS = [
+  'rgba(37,99,235,0.8)',   // blue-600
+  'rgba(220,38,38,0.8)',   // red-600
+  'rgba(22,163,74,0.8)',   // green-600
+  'rgba(234,88,12,0.8)',   // orange-600
+  'rgba(124,58,237,0.8)',  // violet-600
+  'rgba(8,145,178,0.8)',   // cyan-600
+];
 
 // ── Math helpers ──────────────────────────────────────────────────────────────
 

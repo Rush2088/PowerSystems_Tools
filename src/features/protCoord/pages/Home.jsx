@@ -106,8 +106,10 @@ export default function Home() {
 
       {/* ── Top bar ── */}
       <div className="flex shrink-0 items-center gap-3 px-4 py-2.5" style={TOPBAR_STYLE}>
-        <Link to="/" className="primary-action-button shrink-0 px-4 py-2 text-sm">
-          ← Home
+        <Link to="/" className="primary-action-button shrink-0 gap-1.5 px-4 py-2 text-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="15" height="15" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+          Home
         </Link>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-white">⚡ Protection Coordination</div>
@@ -193,7 +195,7 @@ export default function Home() {
             className="flex shrink-0 items-center px-3 py-1.5"
             style={{ borderBottom: `1px solid ${BORDER_CLR}`, background: 'rgba(31,35,40,0.97)' }}
           >
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">TCC Plot</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-slate-200">TCC Plot</span>
           </div>
 
           {/* Chart area — warm iced-coffee background */}
@@ -219,9 +221,9 @@ export default function Home() {
               className="flex w-full shrink-0 items-center justify-between px-3 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition hover:text-slate-300"
               style={{ borderBottom: tableOpen ? `1px solid ${BORDER_CLR}` : 'none' }}
             >
-              <span>Grading Margin Table</span>
+              <span className="font-bold text-slate-200">Grading Margin Table</span>
               <span
-                className="inline-block text-xs text-slate-500 transition-transform duration-200"
+                className="inline-block text-xs text-slate-400 transition-transform duration-200"
                 style={{ transform: tableOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
               >
                 ▾

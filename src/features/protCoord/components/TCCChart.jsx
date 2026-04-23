@@ -13,31 +13,47 @@ const fmtTick = v =>
   : v < 10  ? v.toString()
   : Math.round(v).toString();
 
-const X_TICKS = [0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100];
-const Y_TICKS = [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000];
+const X_MAJ = [0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100];
+const Y_MAJ = [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000];
+
+// Generate minor ticks (2×–9× of each decade between adjacent major ticks)
+function minorTicks(majors, lo, hi) {
+  const out = [];
+  for (let i = 0; i < majors.length - 1; i++) {
+    if (Math.abs(majors[i + 1] / majors[i] - 10) < 0.5) {
+      for (let m = 2; m <= 9; m++) {
+        const v = +(majors[i] * m).toPrecision(6);
+        if (v > lo && v < hi) out.push(v);
+      }
+    }
+  }
+  return out;
+}
 
 // ── Custom tooltip ────────────────────────────────────────────────────────────
-function CustomTooltip({ active, payload, label, curves, xfmr }) {
+function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
+  const visible = payload.filter(p => p.value != null);
+  if (!visible.length) return null;
   return (
     <div style={{
       background: 'rgba(15,23,42,0.96)',
-      border: '1px solid rgba(255,255,255,0.12)',
+      border: '1px solid rgba(255,255,255,0.14)',
       borderRadius: 8,
       padding: '8px 12px',
       fontSize: 11,
       minWidth: 160,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
     }}>
-      <div style={{ color: '#94a3b8', marginBottom: 5, fontWeight: 600 }}>
+      <div style={{ color: '#94a3b8', marginBottom: 5, fontWeight: 700 }}>
         I = {Number(label) < 1 ? Number(label).toFixed(3) : Number(label).toFixed(2)} kA
       </div>
-      {payload.map(p => {
-        if (p.value == null) return null;
+      {visible.map(p => {
         const t = Number(p.value);
         const s = t < 1 ? t.toFixed(3) + ' s' : t.toFixed(2) + ' s';
         return (
           <div key={p.dataKey} style={{ color: p.color, marginBottom: 2 }}>
-            {p.name}: {s}
+            {p.name}: <strong>{s}</strong>
           </div>
         );
       })}
@@ -45,11 +61,14 @@ function CustomTooltip({ active, payload, label, curves, xfmr }) {
   );
 }
 
+// ── Legend formatter ──────────────────────────────────────────────────────────
+const legendFmt = value => (
+  <span style={{ color: '#1e293b', fontSize: 11, fontWeight: 500 }}>{value}</span>
+);
+
 // ── Main chart ────────────────────────────────────────────────────────────────
 export default function TCCChart({ curves, faults, xfmr, plot }) {
   const { refV, Ilo, Ihi, tlo, thi, tlim } = plot;
-
-  const enabledCurves = curves.filter(c => c.enabled);
 
   // Pre-compute 300 log-spaced points
   const data = useMemo(() => {
@@ -69,10 +88,12 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
     });
   }, [curves, xfmr, refV, Ilo, Ihi, tlo, tlim]);
 
-  const xTicks = X_TICKS.filter(v => v >= Ilo * 0.99 && v <= Ihi * 1.01);
-  const yTicks = Y_TICKS.filter(v => v >= tlo * 0.99 && v <= thi * 1.01);
+  const xMaj   = X_MAJ.filter(v => v >= Ilo * 0.99 && v <= Ihi * 1.01);
+  const yMaj   = Y_MAJ.filter(v => v >= tlo * 0.99 && v <= thi * 1.01);
+  const xMinor = minorTicks(X_MAJ, Ilo, Ihi);
+  const yMinor = minorTicks(Y_MAJ, tlo, thi);
 
-  // Fault lines (convert to ref voltage)
+  // Fault lines converted to reference voltage
   const faultLines = faults
     .filter(f => f.en)
     .map(f => ({ I: f.I * f.V / refV, label: f.label }))
@@ -82,55 +103,93 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={data}
-        margin={{ top: 12, right: 32, left: 16, bottom: 40 }}
+        margin={{ top: 8, right: 48, left: 8, bottom: 16 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+        {/* ── Major grid ── */}
+        <CartesianGrid
+          stroke="rgba(0,0,0,0.13)"
+          strokeWidth={0.8}
+          strokeDasharray=""
+        />
+
+        {/* ── Minor grid lines ── */}
+        {xMinor.map(v => (
+          <ReferenceLine key={`xm${v}`} x={v}
+            stroke="rgba(0,0,0,0.05)" strokeWidth={0.6} />
+        ))}
+        {yMinor.map(v => (
+          <ReferenceLine key={`ym${v}`} y={v}
+            stroke="rgba(0,0,0,0.05)" strokeWidth={0.6} />
+        ))}
 
         <XAxis
           dataKey="I"
           scale="log"
           domain={[Ilo, Ihi]}
           type="number"
-          ticks={xTicks}
+          ticks={xMaj}
           tickFormatter={fmtTick}
-          tick={{ fontSize: 10, fill: '#94a3b8' }}
-          label={{ value: `Current (kA) — ref. ${refV} kV`, position: 'insideBottom', offset: -20, fontSize: 11, fill: '#64748b' }}
+          tick={{ fontSize: 11, fill: '#334155', fontWeight: 500 }}
+          label={{
+            value: `Current (kA)  —  ref. ${refV} kV`,
+            position: 'insideBottom',
+            offset: -8,
+            fontSize: 12,
+            fill: '#1e293b',
+            fontWeight: 600,
+          }}
         />
 
         <YAxis
           scale="log"
           domain={[tlo, thi]}
           type="number"
-          ticks={yTicks}
+          ticks={yMaj}
           tickFormatter={fmtTick}
-          tick={{ fontSize: 10, fill: '#94a3b8' }}
-          label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft', offset: 0, dx: -8, fontSize: 11, fill: '#64748b' }}
-          width={52}
+          tick={{ fontSize: 11, fill: '#334155', fontWeight: 500 }}
+          width={58}
+          label={{
+            value: 'Time (seconds)',
+            angle: -90,
+            position: 'insideLeft',
+            offset: 12,
+            fontSize: 12,
+            fill: '#1e293b',
+            fontWeight: 600,
+          }}
         />
 
-        <Tooltip
-          content={<CustomTooltip curves={curves} xfmr={xfmr} />}
-          isAnimationActive={false}
-        />
-
+        {/* Legend at top — no overlap with x-axis label */}
         <Legend
-          wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
-          formatter={value => <span style={{ color: '#cbd5e1' }}>{value}</span>}
+          verticalAlign="top"
+          align="center"
+          height={32}
+          formatter={legendFmt}
+          wrapperStyle={{ paddingBottom: 4 }}
         />
 
-        {/* Fault marker reference lines */}
+        <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
+
+        {/* ── Fault marker reference lines ── */}
         {faultLines.map((f, i) => (
           <ReferenceLine
             key={i}
             x={f.I}
-            stroke="#94a3b8"
-            strokeDasharray="6 3"
+            stroke="#64748b"
+            strokeDasharray="7 3"
             strokeWidth={1.5}
-            label={{ value: f.label, position: 'insideTopRight', fontSize: 8, fill: '#64748b', angle: -90 }}
+            label={{
+              value: f.label,
+              position: 'insideTopRight',
+              fontSize: 11,
+              fontWeight: 600,
+              fill: '#334155',
+              angle: -90,
+            }}
           />
         ))}
 
-        {/* Relay curves */}
+        {/* ── Relay curves — thicker, modern palette, 80% opacity ── */}
         {curves.map((c, i) => !c.enabled ? null : (
           <Line
             key={i}
@@ -138,22 +197,22 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
             dataKey={`c${i}`}
             name={c.label}
             stroke={c.color}
-            strokeWidth={2.5}
+            strokeWidth={3.5}
             dot={false}
             connectNulls={false}
             isAnimationActive={false}
           />
         ))}
 
-        {/* Transformer I²t */}
+        {/* ── Transformer I²t — dashed ── */}
         {xfmr.en && (
           <Line
             type="monotone"
             dataKey="xfmr"
             name={xfmr.label}
-            stroke="#94a3b8"
-            strokeWidth={2}
-            strokeDasharray="8 4"
+            stroke="rgba(71,85,105,0.75)"
+            strokeWidth={2.5}
+            strokeDasharray="9 4"
             dot={false}
             connectNulls={false}
             isAnimationActive={false}
