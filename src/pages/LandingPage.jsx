@@ -12,16 +12,13 @@ function ToolCard({ title, description, primary = false, onClick }) {
       }
     >
       <div className="text-2xl font-extrabold tracking-tight">{title}</div>
-      <div className="mt-2 text-xs italic text-slate-300">
-  {description}
-</div>
+      <div className="mt-2 text-xs italic text-slate-300">{description}</div>
     </button>
   );
 }
 
 export default function LandingPage() {
   const navigate = useNavigate();
-
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-4xl glass-card p-6 sm:p-8">
@@ -30,7 +27,7 @@ export default function LandingPage() {
             Power System Tools
           </div>
           <p className="mt-5 text-base text-slate-300 sm:text-lg">
-            Collection of IEC based tools for Power Systems and protection calculations
+            Collection of IEC / IEEE based tools for Power Systems and protection calculations
           </p>
         </div>
 
@@ -38,13 +35,17 @@ export default function LandingPage() {
           <ToolCard
             title="Fault Level Calculator"
             description="IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution."
-            // primary
             onClick={() => navigate('/fault-calc')}
           />
           <ToolCard
             title="Grid Impedance Calculator"
             description="Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels."
             onClick={() => navigate('/grid-impedance')}
+          />
+          <ToolCard
+            title="Arc Flash Calculator"
+            description="IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV."
+            onClick={() => navigate('/arc-flash')}
           />
         </div>
       </div>
