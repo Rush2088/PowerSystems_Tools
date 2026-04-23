@@ -1,32 +1,36 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import TCCChart   from '../components/TCCChart';
+import TCCChart    from '../components/TCCChart';
 import GradingTable from '../components/GradingTable';
-import CurveForm  from '../components/CurveForm';
-import ExtrasForm from '../components/ExtrasForm';
+import CurveForm   from '../components/CurveForm';
+import ExtrasForm  from '../components/ExtrasForm';
 import {
   INIT_CURVES, INIT_FAULTS, INIT_XFMR, INIT_PLOT,
   logSpace, curveT,
 } from '../utils/curveCalc';
 
+// Sidebar + top-bar background — matches app body (#1f2328) with slight glass tint
+const PANEL_BG  = 'rgba(31,35,40,0.97)';   // #1f2328 ≈ body background
+const BORDER_CLR = 'rgba(255,255,255,0.08)';
+
 export default function Home() {
-  const [curves,     setCurves]     = useState(INIT_CURVES);
-  const [faults,     setFaults]     = useState(INIT_FAULTS);
-  const [xfmr,       setXfmr]       = useState(INIT_XFMR);
-  const [plot,       setPlot]       = useState(INIT_PLOT);
-  const [tab,        setTab]        = useState(0);   // 0-5 = curves, 6 = extras
-  const [tableOpen,  setTableOpen]  = useState(true);
-  const [copyMsg,    setCopyMsg]    = useState('');
-  const svgRef = useRef(null);
+  const [curves,    setCurves]    = useState(INIT_CURVES);
+  const [faults,    setFaults]    = useState(INIT_FAULTS);
+  const [xfmr,      setXfmr]      = useState(INIT_XFMR);
+  const [plot,      setPlot]      = useState(INIT_PLOT);
+  const [tab,       setTab]       = useState(0);
+  const [tableOpen, setTableOpen] = useState(true);
+  const [copyMsg,   setCopyMsg]   = useState('');
+  const chartContainerRef = useRef(null);
 
   const updCrv = (idx, key, val) =>
     setCurves(cs => cs.map((c, i) => i === idx ? { ...c, [key]: val } : c));
 
-  // ── Copy curve data as TSV (paste into Excel) ────────────────────────────
+  // ── Copy curve data as TSV ───────────────────────────────────────────────
   const copyData = () => {
     const enabled = curves.filter(c => c.enabled);
     if (!enabled.length) return;
-    const Ipts  = logSpace(0.01, 50, 150);
+    const Ipts   = logSpace(0.01, 50, 150);
     const header = ['Current (kA)', ...enabled.map(c => `${c.label} (s)`)].join('\t');
     const rows   = Ipts.map(I => {
       const ts = enabled.map(c => {
@@ -43,10 +47,13 @@ export default function Home() {
 
   // ── Save chart as PNG ────────────────────────────────────────────────────
   const savePlot = () => {
-    const svg = svgRef.current;
+    const container = chartContainerRef.current;
+    if (!container) return;
+    const svg = container.querySelector('svg');
     if (!svg) return;
-    const vb    = svg.viewBox.baseVal;
-    const W = vb.width, H = vb.height;
+    const vb = svg.viewBox?.baseVal;
+    const W  = vb?.width  || svg.clientWidth  || 740;
+    const H  = vb?.height || svg.clientHeight || 480;
     const scale = 2;
     const clone = svg.cloneNode(true);
     clone.setAttribute('width',  String(W));
@@ -62,7 +69,7 @@ export default function Home() {
       canvas.width  = W * scale;
       canvas.height = H * scale;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#1f2328';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.scale(scale, scale);
       ctx.drawImage(img, 0, 0, W, H);
@@ -76,33 +83,30 @@ export default function Home() {
     img.src = url;
   };
 
-  // ── Tab definitions ──────────────────────────────────────────────────────
-  const TABS = [
-    ...curves.map((c, i) => ({ id: i, label: `C${i + 1}`, color: c.color, dim: !c.enabled })),
-    { id: 6, label: '⚙', color: null, dim: false, settings: true },
-  ];
-
   return (
     <div className="flex flex-col overflow-hidden" style={{ height: '100vh' }}>
 
       {/* ── Top bar ── */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-slate-950 px-4 py-2.5">
-        <Link to="/" className="primary-action-button px-4 py-2 text-sm shrink-0">
+      <div
+        className="flex shrink-0 items-center gap-3 px-4 py-2.5"
+        style={{ background: PANEL_BG, borderBottom: `1px solid ${BORDER_CLR}` }}
+      >
+        <Link to="/" className="primary-action-button shrink-0 px-4 py-2 text-sm">
           ← Home
         </Link>
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-white">⚡ Protection Coordination</div>
           <div className="text-[10px] text-slate-500">Overcurrent TCC — Interactive Tool</div>
         </div>
         <button
           onClick={copyData}
-          className="shrink-0 flex items-center gap-1.5 rounded-lg border border-white/10 bg-slate-800 px-3 py-1.5 text-[11px] text-slate-300 hover:bg-slate-700 transition"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.06] px-3 py-1.5 text-[11px] text-slate-300 transition hover:bg-white/[0.12]"
         >
           📋 {copyMsg || 'Copy Data'}
         </button>
         <button
           onClick={savePlot}
-          className="shrink-0 flex items-center gap-1.5 rounded-lg bg-cyan-500 px-3 py-1.5 text-[11px] font-semibold text-slate-950 hover:bg-cyan-400 transition"
+          className="flex shrink-0 items-center gap-1.5 rounded-lg bg-cyan-400 px-3 py-1.5 text-[11px] font-semibold text-slate-950 transition hover:bg-cyan-300"
         >
           🖼 Save Plot
         </button>
@@ -112,31 +116,51 @@ export default function Home() {
       <div className="flex flex-1 min-h-0">
 
         {/* ── Sidebar ── */}
-        <div className="flex w-[272px] shrink-0 flex-col border-r border-white/10 bg-slate-950">
-
+        <div
+          className="flex w-[272px] shrink-0 flex-col"
+          style={{ background: PANEL_BG, borderRight: `1px solid ${BORDER_CLR}` }}
+        >
           {/* Tab strip */}
-          <div className="flex flex-wrap gap-1 border-b border-white/10 px-2 pt-2 pb-1.5">
-            {TABS.map(t => (
+          <div
+            className="flex flex-wrap gap-1 px-2 pt-2 pb-1.5"
+            style={{ borderBottom: `1px solid ${BORDER_CLR}` }}
+          >
+            {curves.map((c, i) => (
               <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-[11px] transition
-                  ${t.settings
-                    ? tab === t.id ? 'bg-slate-700 text-cyan-400 font-semibold' : 'bg-slate-800/60 text-cyan-500 border border-cyan-500/30 font-semibold'
-                    : tab === t.id ? 'bg-blue-700 text-white'                   : t.dim ? 'text-slate-600' : 'text-slate-400 hover:text-slate-200'
+                key={i}
+                onClick={() => setTab(i)}
+                className={`flex items-center gap-1.5 rounded px-2 py-1 text-[11px] transition
+                  ${tab === i
+                    ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/40'
+                    : c.enabled ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600'
                   }`}
               >
-                {t.color && (
-                  <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: t.color }} />
-                )}
-                {t.label}
+                <span
+                  className="inline-block h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: c.color, opacity: c.enabled ? 1 : 0.35 }}
+                />
+                Curve {i + 1}
               </button>
             ))}
+            {/* Settings tab */}
+            <button
+              onClick={() => setTab(6)}
+              className={`rounded px-2.5 py-1 text-[11px] font-semibold transition
+                ${tab === 6
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'text-cyan-500/70 border border-cyan-500/20 hover:text-cyan-400'
+                }`}
+            >
+              ⚙
+            </button>
           </div>
 
-          {/* Active curve name */}
+          {/* Active curve name banner */}
           {tab < 6 && (
-            <div className="border-b border-white/10 px-3 py-1.5 text-[11px] font-semibold" style={{ color: curves[tab].color }}>
+            <div
+              className="px-3 py-1.5 text-[11px] font-semibold"
+              style={{ color: curves[tab].color, borderBottom: `1px solid ${BORDER_CLR}` }}
+            >
               {curves[tab].label}
             </div>
           )}
@@ -151,34 +175,48 @@ export default function Home() {
         </div>
 
         {/* ── Right panel ── */}
-        <div className="flex flex-1 min-w-0 flex-col bg-slate-50">
+        <div className="flex flex-1 min-w-0 flex-col" style={{ background: '#1a1f26' }}>
 
-          {/* Chart label bar */}
-          <div className="flex shrink-0 items-center border-b border-slate-200 bg-slate-100 px-3 py-1.5">
+          {/* Chart label */}
+          <div
+            className="flex shrink-0 items-center px-3 py-1.5"
+            style={{ borderBottom: `1px solid ${BORDER_CLR}`, background: PANEL_BG }}
+          >
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">TCC Plot</span>
           </div>
 
           {/* Chart area */}
-          <div className="flex flex-1 min-h-0 items-center justify-center overflow-hidden p-2">
+          <div
+            ref={chartContainerRef}
+            className="flex flex-1 min-h-0 overflow-hidden p-3"
+          >
             <TCCChart
               curves={curves}
               faults={faults}
               xfmr={xfmr}
               plot={plot}
-              svgRef={svgRef}
             />
           </div>
 
           {/* Grading table — collapsible */}
-          <div className="flex shrink-0 flex-col border-t border-slate-200 bg-white"
-            style={{ maxHeight: tableOpen ? '28vh' : 'auto' }}>
+          <div
+            className="flex shrink-0 flex-col"
+            style={{
+              borderTop: `1px solid ${BORDER_CLR}`,
+              background: 'rgba(255,255,255,0.03)',
+              maxHeight: tableOpen ? '28vh' : 'auto',
+            }}
+          >
             <button
               onClick={() => setTableOpen(o => !o)}
-              className="flex shrink-0 w-full items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition text-left"
+              className="flex w-full shrink-0 items-center justify-between px-3 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition hover:text-slate-300"
+              style={{ borderBottom: tableOpen ? `1px solid ${BORDER_CLR}` : 'none' }}
             >
               <span>Grading Margin Table</span>
-              <span className="text-xs text-slate-400 transition-transform duration-200"
-                style={{ display: 'inline-block', transform: tableOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <span
+                className="text-xs text-slate-500 transition-transform duration-200 inline-block"
+                style={{ transform: tableOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
                 ▾
               </span>
             </button>

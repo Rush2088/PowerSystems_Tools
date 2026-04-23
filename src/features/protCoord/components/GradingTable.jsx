@@ -23,15 +23,17 @@ export default function GradingTable({ curves, faults, plot }) {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-[11px]" style={{ minWidth: 400 }}>
         <thead>
-          <tr className="bg-slate-100">
-            <th className="px-2 py-1.5 text-left font-semibold text-slate-500 border-b-2 border-slate-200">I (kA)</th>
+          <tr style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <th className="px-2 py-1.5 text-left font-semibold text-slate-400" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              I (kA)
+            </th>
             {enabled.map((c, i) => (
-              <th key={i} className="px-2 py-1.5 text-center font-semibold border-b-2 border-slate-200" style={{ color: c.color }}>
+              <th key={i} className="px-2 py-1.5 text-center font-semibold" style={{ color: c.color, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 {c.label}
               </th>
             ))}
             {enabled.length >= 2 && enabled.slice(0, -1).map((_, i) => (
-              <th key={`m${i}`} className="px-2 py-1.5 text-center text-[10px] font-semibold text-slate-400 border-b-2 border-slate-200">
+              <th key={`m${i}`} className="px-2 py-1.5 text-center text-[10px] font-semibold text-slate-500" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                 Margin {i + 2}→{i + 1}
               </th>
             ))}
@@ -45,21 +47,21 @@ export default function GradingTable({ curves, faults, plot }) {
               return (a !== null && b !== null) ? +(b - a).toFixed(3) : null;
             });
             return (
-              <tr key={ri} className={ri % 2 ? 'bg-slate-50' : 'bg-white'}>
-                <td className="px-2 py-1 font-semibold text-slate-700">{I.toFixed(3)}</td>
+              <tr key={ri} style={{ background: ri % 2 ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                <td className="px-2 py-1 font-semibold text-slate-300">{I.toFixed(3)}</td>
                 {ts.map((t, i) => (
                   <td key={i} className="px-2 py-1 text-center"
-                    style={{ color: t === null ? '#94a3b8' : enabled[i].color }}>
+                    style={{ color: t === null ? '#475569' : enabled[i].color }}>
                     {fmt(t)}
                   </td>
                 ))}
                 {margins.map((m, i) => {
-                  const ok = m !== null && m >= 0.3;
+                  const ok   = m !== null && m >= 0.3;
                   const warn = m !== null && m >= 0 && m < 0.3;
-                  const bad = m !== null && m < 0;
+                  const bad  = m !== null && m < 0;
                   return (
                     <td key={`m${i}`} className="px-2 py-1 text-center font-semibold"
-                      style={{ color: ok ? '#16a34a' : warn ? '#d97706' : bad ? '#dc2626' : '#94a3b8' }}>
+                      style={{ color: ok ? '#4ade80' : warn ? '#fb923c' : bad ? '#f87171' : '#475569' }}>
                       {m === null ? '—' : `${m >= 0 ? '+' : ''}${m.toFixed(3)}s`}
                     </td>
                   );
@@ -69,10 +71,10 @@ export default function GradingTable({ curves, faults, plot }) {
           })}
         </tbody>
       </table>
-      <div className="px-2 py-1.5 text-[9px] text-slate-400 flex gap-4 flex-wrap">
-        <span style={{ color: '#16a34a' }}>✓ ≥ 0.3 s — adequate</span>
-        <span style={{ color: '#d97706' }}>⚠ 0 – 0.3 s — marginal</span>
-        <span style={{ color: '#dc2626' }}>✗ negative — miscoordination</span>
+      <div className="flex flex-wrap gap-4 px-2 py-1.5 text-[9px] text-slate-500">
+        <span style={{ color: '#4ade80' }}>✓ ≥ 0.3 s — adequate</span>
+        <span style={{ color: '#fb923c' }}>⚠ 0 – 0.3 s — marginal</span>
+        <span style={{ color: '#f87171' }}>✗ negative — miscoordination</span>
       </div>
     </div>
   );

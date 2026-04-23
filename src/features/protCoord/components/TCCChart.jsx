@@ -1,191 +1,165 @@
-import { useState, useMemo } from 'react';
-import { logSpace, curveT, xfmrT, minorTks } from '../utils/curveCalc';
+import { useMemo } from 'react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ReferenceLine, ResponsiveContainer, Legend,
+} from 'recharts';
+import { logSpace, curveT, xfmrT } from '../utils/curveCalc';
 
-export default function TCCChart({ curves, faults, xfmr, plot, svgRef }) {
-  const [hov, setHov] = useState(null);
+// ── Tick helpers ──────────────────────────────────────────────────────────────
+const fmtTick = v =>
+  v < 0.01  ? v.toExponential(0)
+  : v < 0.1 ? v.toPrecision(1)
+  : v < 1   ? v.toString()
+  : v < 10  ? v.toString()
+  : Math.round(v).toString();
+
+const X_TICKS = [0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100];
+const Y_TICKS = [0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000];
+
+// ── Custom tooltip ────────────────────────────────────────────────────────────
+function CustomTooltip({ active, payload, label, curves, xfmr }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{
+      background: 'rgba(15,23,42,0.96)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: 8,
+      padding: '8px 12px',
+      fontSize: 11,
+      minWidth: 160,
+    }}>
+      <div style={{ color: '#94a3b8', marginBottom: 5, fontWeight: 600 }}>
+        I = {Number(label) < 1 ? Number(label).toFixed(3) : Number(label).toFixed(2)} kA
+      </div>
+      {payload.map(p => {
+        if (p.value == null) return null;
+        const t = Number(p.value);
+        const s = t < 1 ? t.toFixed(3) + ' s' : t.toFixed(2) + ' s';
+        return (
+          <div key={p.dataKey} style={{ color: p.color, marginBottom: 2 }}>
+            {p.name}: {s}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Main chart ────────────────────────────────────────────────────────────────
+export default function TCCChart({ curves, faults, xfmr, plot }) {
   const { refV, Ilo, Ihi, tlo, thi, tlim } = plot;
 
-  const VW = 740, VH = 480, ML = 64, MR = 16, MT = 14, MB = 56;
-  const W = VW - ML - MR, H = VH - MT - MB;
-  const lIlo = Math.log10(Ilo), lIhi = Math.log10(Ihi);
-  const lTlo = Math.log10(tlo), lThi = Math.log10(thi);
-  const xS = I => (Math.log10(I) - lIlo) / (lIhi - lIlo) * W;
-  const yS = t => H - (Math.log10(Math.max(t, tlo * 0.3)) - lTlo) / (lThi - lTlo) * H;
+  const enabledCurves = curves.filter(c => c.enabled);
 
-  const xMaj = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100].filter(v => v >= Ilo * 0.99 && v <= Ihi * 1.01);
-  const yMaj = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100].filter(v => v >= tlo * 0.99 && v <= thi * 1.01);
-  const xMin = minorTks(xMaj).filter(v => v >= Ilo && v <= Ihi);
-  const yMin = minorTks(yMaj).filter(v => v >= tlo && v <= thi);
+  // Pre-compute 300 log-spaced points
+  const data = useMemo(() => {
+    const Ipts = logSpace(Ilo, Ihi, 300);
+    return Ipts.map(I => {
+      const pt = { I };
+      curves.forEach((c, i) => {
+        if (!c.enabled) return;
+        const t = curveT(I, c, refV);
+        pt[`c${i}`] = (t && t > 0 && isFinite(t) && t <= tlim && t >= tlo) ? t : undefined;
+      });
+      if (xfmr.en) {
+        const t = xfmrT(I, xfmr, refV);
+        pt.xfmr = (t && t > 0 && isFinite(t) && t >= tlo) ? t : undefined;
+      }
+      return pt;
+    });
+  }, [curves, xfmr, refV, Ilo, Ihi, tlo, tlim]);
 
-  const Ipts = useMemo(() => logSpace(Ilo, Ihi, 600), [Ilo, Ihi]);
+  const xTicks = X_TICKS.filter(v => v >= Ilo * 0.99 && v <= Ihi * 1.01);
+  const yTicks = Y_TICKS.filter(v => v >= tlo * 0.99 && v <= thi * 1.01);
 
-  const makePath = (vals) => {
-    let d = '', pen = false;
-    for (let i = 0; i < Ipts.length; i++) {
-      const t = vals[i];
-      if (!t || !isFinite(t) || t <= 0 || t > tlim * 1.001) { pen = false; continue; }
-      const x = xS(Ipts[i]), y = yS(t);
-      if (y > H + 6 || y < -6 || x < -3 || x > W + 3) { pen = false; continue; }
-      d += pen ? ` L${x.toFixed(1)},${y.toFixed(1)}` : `M${x.toFixed(1)},${y.toFixed(1)}`;
-      pen = true;
-    }
-    return d;
-  };
-
-  const curvePaths = useMemo(() => curves.map(c => {
-    if (!c.enabled) return '';
-    return makePath(Ipts.map(I => curveT(I, c, refV)));
-  }), [curves, Ipts, refV, tlim]);
-
-  const xfmrPath = useMemo(() => {
-    if (!xfmr.en) return '';
-    return makePath(Ipts.map(I => xfmrT(I, xfmr, refV)));
-  }, [xfmr, Ipts, refV]);
-
-  const fmtV = v => v < 0.1 ? v.toPrecision(1) : v < 1 ? v.toString() : v >= 10 ? Math.round(v).toString() : v.toString();
-
-  const onMove = e => {
-    const r = e.currentTarget.getBoundingClientRect();
-    const sx = VW / r.width, sy = VH / r.height;
-    const px = (e.clientX - r.left) * sx - ML;
-    const py = (e.clientY - r.top) * sy - MT;
-    if (px >= 0 && px <= W && py >= 0 && py <= H) {
-      setHov({ x: px, I: 10 ** (lIlo + (px / W) * (lIhi - lIlo)) });
-    } else setHov(null);
-  };
-
-  const enabledCrvs = curves.filter(c => c.enabled);
+  // Fault lines (convert to ref voltage)
+  const faultLines = faults
+    .filter(f => f.en)
+    .map(f => ({ I: f.I * f.V / refV, label: f.label }))
+    .filter(f => f.I >= Ilo && f.I <= Ihi);
 
   return (
-    <svg
-      ref={svgRef}
-      viewBox={`0 0 ${VW} ${VH}`}
-      preserveAspectRatio="xMidYMid meet"
-      style={{ display: 'block', width: '100%', height: '100%', cursor: 'crosshair' }}
-      onMouseMove={onMove}
-      onMouseLeave={() => setHov(null)}
-    >
-      <defs>
-        <clipPath id="cc">
-          <rect x={0} y={0} width={W} height={H} />
-        </clipPath>
-      </defs>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={data}
+        margin={{ top: 12, right: 32, left: 16, bottom: 40 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
 
-      <rect x={ML} y={MT} width={W} height={H} fill="#f9fafb" />
+        <XAxis
+          dataKey="I"
+          scale="log"
+          domain={[Ilo, Ihi]}
+          type="number"
+          ticks={xTicks}
+          tickFormatter={fmtTick}
+          tick={{ fontSize: 10, fill: '#94a3b8' }}
+          label={{ value: `Current (kA) — ref. ${refV} kV`, position: 'insideBottom', offset: -20, fontSize: 11, fill: '#64748b' }}
+        />
 
-      <g transform={`translate(${ML},${MT})`}>
-        {/* Minor grid */}
-        {xMin.map(v => <line key={v} x1={xS(v)} y1={0} x2={xS(v)} y2={H} stroke="#f0f0f0" strokeWidth={0.5} />)}
-        {yMin.map(v => <line key={v} x1={0} y1={yS(v)} x2={W} y2={yS(v)} stroke="#f0f0f0" strokeWidth={0.5} />)}
-        {/* Major grid */}
-        {xMaj.map(v => <line key={v} x1={xS(v)} y1={0} x2={xS(v)} y2={H} stroke="#e2e8f0" strokeWidth={0.8} />)}
-        {yMaj.map(v => <line key={v} x1={0} y1={yS(v)} x2={W} y2={yS(v)} stroke="#e2e8f0" strokeWidth={0.8} />)}
+        <YAxis
+          scale="log"
+          domain={[tlo, thi]}
+          type="number"
+          ticks={yTicks}
+          tickFormatter={fmtTick}
+          tick={{ fontSize: 10, fill: '#94a3b8' }}
+          label={{ value: 'Time (seconds)', angle: -90, position: 'insideLeft', offset: 0, dx: -8, fontSize: 11, fill: '#64748b' }}
+          width={52}
+        />
 
-        <g clipPath="url(#cc)">
-          {/* Fault markers */}
-          {faults.filter(f => f.en).map((f, i) => {
-            const Ir = f.I * f.V / refV;
-            if (Ir < Ilo || Ir > Ihi) return null;
-            return (
-              <g key={i}>
-                <line x1={xS(Ir)} y1={0} x2={xS(Ir)} y2={H} stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="6,3" />
-                <text x={xS(Ir) - 4} y={H - 4} fontSize={8} fill="#64748b" textAnchor="end"
-                  transform={`rotate(-90,${xS(Ir) - 4},${H - 4})`}>{f.label}</text>
-              </g>
-            );
-          })}
-          {/* Transformer I²t */}
-          {xfmrPath && <path d={xfmrPath} fill="none" stroke="#334155" strokeWidth={2} strokeDasharray="8,4" />}
-          {/* Relay curves */}
-          {curves.map((c, i) => c.enabled && curvePaths[i]
-            ? <path key={i} d={curvePaths[i]} fill="none" stroke={c.color} strokeWidth={2.5} />
-            : null
-          )}
-          {/* HS1 pickup tick */}
-          {curves.map((c, i) => {
-            if (!c.enabled || !c.hs1on) return null;
-            const Ir = c.hs1A / 1000 * c.voltage / refV;
-            if (Ir < Ilo || Ir > Ihi) return null;
-            return <line key={i} x1={xS(Ir)} y1={0} x2={xS(Ir)} y2={H}
-              stroke={c.color} strokeWidth={1} strokeDasharray="3,2" opacity={0.55} />;
-          })}
-          {/* Hover crosshair */}
-          {hov && <>
-            <line x1={hov.x} y1={0} x2={hov.x} y2={H} stroke="#475569" strokeWidth={1} strokeDasharray="4,2" opacity={0.7} />
-            {curves.map((c, i) => {
-              if (!c.enabled) return null;
-              const t = curveT(hov.I, c, refV);
-              if (!t || t <= 0 || t > tlim || t < tlo) return null;
-              return <circle key={i} cx={hov.x} cy={yS(t)} r={4} fill={c.color} />;
-            })}
-          </>}
-        </g>
+        <Tooltip
+          content={<CustomTooltip curves={curves} xfmr={xfmr} />}
+          isAnimationActive={false}
+        />
 
-        <rect x={0} y={0} width={W} height={H} fill="none" stroke="#94a3b8" strokeWidth={1} />
+        <Legend
+          wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
+          formatter={value => <span style={{ color: '#cbd5e1' }}>{value}</span>}
+        />
 
-        {/* X axis ticks + labels */}
-        {xMaj.map(v => (
-          <g key={v}>
-            <line x1={xS(v)} y1={H} x2={xS(v)} y2={H + 5} stroke="#64748b" />
-            <text x={xS(v)} y={H + 15} textAnchor="middle" fontSize={9} fill="#374151">{fmtV(v)}</text>
-          </g>
-        ))}
-        {/* Y axis ticks + labels */}
-        {yMaj.map(v => (
-          <g key={v}>
-            <line x1={0} y1={yS(v)} x2={-5} y2={yS(v)} stroke="#64748b" />
-            <text x={-7} y={yS(v) + 3.5} textAnchor="end" fontSize={9} fill="#374151">{fmtV(v)}</text>
-          </g>
+        {/* Fault marker reference lines */}
+        {faultLines.map((f, i) => (
+          <ReferenceLine
+            key={i}
+            x={f.I}
+            stroke="#94a3b8"
+            strokeDasharray="6 3"
+            strokeWidth={1.5}
+            label={{ value: f.label, position: 'insideTopRight', fontSize: 8, fill: '#64748b', angle: -90 }}
+          />
         ))}
 
-        {/* Axis labels */}
-        <text x={W / 2} y={H + 36} textAnchor="middle" fontSize={11} fill="#1e293b" fontWeight="600">
-          Current (kA) — ref. {refV} kV
-        </text>
-        <text transform="rotate(-90)" x={-H / 2} y={-45} textAnchor="middle" fontSize={11} fill="#1e293b" fontWeight="600">
-          Time (seconds)
-        </text>
-
-        {/* Legend */}
-        {enabledCrvs.map((c, ri) => (
-          <g key={ri} transform={`translate(${W - 140},${ri * 18 + 4})`}>
-            <line x1={0} y1={7} x2={18} y2={7} stroke={c.color} strokeWidth={2.5} />
-            <text x={22} y={11} fontSize={9} fill="#1e293b">{c.label.slice(0, 16)}</text>
-          </g>
+        {/* Relay curves */}
+        {curves.map((c, i) => !c.enabled ? null : (
+          <Line
+            key={i}
+            type="monotone"
+            dataKey={`c${i}`}
+            name={c.label}
+            stroke={c.color}
+            strokeWidth={2.5}
+            dot={false}
+            connectNulls={false}
+            isAnimationActive={false}
+          />
         ))}
+
+        {/* Transformer I²t */}
         {xfmr.en && (
-          <g transform={`translate(${W - 140},${enabledCrvs.length * 18 + 4})`}>
-            <line x1={0} y1={7} x2={18} y2={7} stroke="#334155" strokeWidth={2} strokeDasharray="8,4" />
-            <text x={22} y={11} fontSize={9} fill="#1e293b">{xfmr.label}</text>
-          </g>
+          <Line
+            type="monotone"
+            dataKey="xfmr"
+            name={xfmr.label}
+            stroke="#94a3b8"
+            strokeWidth={2}
+            strokeDasharray="8 4"
+            dot={false}
+            connectNulls={false}
+            isAnimationActive={false}
+          />
         )}
-
-        {/* Hover tooltip */}
-        {hov && (() => {
-          const tl = hov.x > W - 160 ? hov.x - 165 : hov.x + 8;
-          const rows = [
-            { label: `I = ${hov.I < 1 ? hov.I.toFixed(3) : hov.I.toFixed(2)} kA`, color: '#1e293b', bold: true },
-            ...enabledCrvs.map(c => {
-              const t = curveT(hov.I, c, refV);
-              const s = (!t || t <= 0 || t > tlim || t < tlo) ? '—' : t < 1 ? `${t.toFixed(3)}s` : `${t.toFixed(2)}s`;
-              return { label: `${c.label.slice(0, 14)}: ${s}`, color: c.color };
-            }),
-            xfmr.en && (() => {
-              const t = xfmrT(hov.I, xfmr, refV);
-              const s = (!t || t <= 0) ? '—' : t < 1 ? `${t.toFixed(3)}s` : `${t.toFixed(2)}s`;
-              return { label: `Xfmr I²t: ${s}`, color: '#334155' };
-            })(),
-          ].filter(Boolean);
-          return (
-            <g transform={`translate(${tl},4)`}>
-              <rect width={158} height={rows.length * 14 + 6} rx={3} fill="white" stroke="#d1d5db" strokeWidth={1} opacity={0.97} />
-              {rows.map((r, i) => (
-                <text key={i} x={5} y={13 + i * 14} fontSize={9} fill={r.color} fontWeight={r.bold ? '600' : '400'}>{r.label}</text>
-              ))}
-            </g>
-          );
-        })()}
-      </g>
-    </svg>
+      </LineChart>
+    </ResponsiveContainer>
   );
 }
