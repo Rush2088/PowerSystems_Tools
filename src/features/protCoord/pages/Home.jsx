@@ -9,9 +9,27 @@ import {
   logSpace, curveT,
 } from '../utils/curveCalc';
 
-// Sidebar + top-bar background — matches app body (#1f2328) with slight glass tint
-const PANEL_BG  = 'rgba(31,35,40,0.97)';   // #1f2328 ≈ body background
 const BORDER_CLR = 'rgba(255,255,255,0.08)';
+
+// Sidebar / top-bar: same #1f2328 base as the app body, with spotlight radial gradients
+const SIDEBAR_STYLE = {
+  background: '#1f2328',
+  backgroundImage: [
+    'radial-gradient(circle at 20% 18%, rgba(79,140,255,0.13), transparent 50%)',
+    'radial-gradient(circle at 80% 72%, rgba(34,211,238,0.09), transparent 42%)',
+    'radial-gradient(circle at 8%  88%, rgba(255,255,255,0.04), transparent 32%)',
+    'repeating-linear-gradient(0deg,rgba(255,255,255,0.012) 0px,rgba(255,255,255,0.012) 1px,transparent 1px,transparent 3px)',
+  ].join(','),
+};
+
+const TOPBAR_STYLE = {
+  background: 'rgba(31,35,40,0.97)',
+  borderBottom: `1px solid ${BORDER_CLR}`,
+  backdropFilter: 'blur(8px)',
+};
+
+// Chart area: warm off-white "iced coffee" tone
+const CHART_BG = '#f0ebe3';
 
 export default function Home() {
   const [curves,    setCurves]    = useState(INIT_CURVES);
@@ -69,7 +87,7 @@ export default function Home() {
       canvas.width  = W * scale;
       canvas.height = H * scale;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#1f2328';
+      ctx.fillStyle = CHART_BG;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.scale(scale, scale);
       ctx.drawImage(img, 0, 0, W, H);
@@ -87,10 +105,7 @@ export default function Home() {
     <div className="flex flex-col overflow-hidden" style={{ height: '100vh' }}>
 
       {/* ── Top bar ── */}
-      <div
-        className="flex shrink-0 items-center gap-3 px-4 py-2.5"
-        style={{ background: PANEL_BG, borderBottom: `1px solid ${BORDER_CLR}` }}
-      >
+      <div className="flex shrink-0 items-center gap-3 px-4 py-2.5" style={TOPBAR_STYLE}>
         <Link to="/" className="primary-action-button shrink-0 px-4 py-2 text-sm">
           ← Home
         </Link>
@@ -118,20 +133,17 @@ export default function Home() {
         {/* ── Sidebar ── */}
         <div
           className="flex w-[272px] shrink-0 flex-col"
-          style={{ background: PANEL_BG, borderRight: `1px solid ${BORDER_CLR}` }}
+          style={{ ...SIDEBAR_STYLE, borderRight: `1px solid ${BORDER_CLR}` }}
         >
           {/* Tab strip */}
-          <div
-            className="flex flex-wrap gap-1 px-2 pt-2 pb-1.5"
-            style={{ borderBottom: `1px solid ${BORDER_CLR}` }}
-          >
+          <div className="flex flex-wrap gap-1 px-2 pt-2 pb-1.5" style={{ borderBottom: `1px solid ${BORDER_CLR}` }}>
             {curves.map((c, i) => (
               <button
                 key={i}
                 onClick={() => setTab(i)}
                 className={`flex items-center gap-1.5 rounded px-2 py-1 text-[11px] transition
                   ${tab === i
-                    ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/40'
+                    ? 'bg-cyan-500/20 font-semibold text-cyan-300 border border-cyan-500/40'
                     : c.enabled ? 'text-slate-400 hover:text-slate-200' : 'text-slate-600'
                   }`}
               >
@@ -142,20 +154,19 @@ export default function Home() {
                 Curve {i + 1}
               </button>
             ))}
-            {/* Settings tab */}
             <button
               onClick={() => setTab(6)}
               className={`rounded px-2.5 py-1 text-[11px] font-semibold transition
                 ${tab === 6
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-cyan-500/70 border border-cyan-500/20 hover:text-cyan-400'
+                  : 'border border-cyan-500/20 text-cyan-500/70 hover:text-cyan-400'
                 }`}
             >
               ⚙
             </button>
           </div>
 
-          {/* Active curve name banner */}
+          {/* Active curve name */}
           {tab < 6 && (
             <div
               className="px-3 py-1.5 text-[11px] font-semibold"
@@ -175,27 +186,23 @@ export default function Home() {
         </div>
 
         {/* ── Right panel ── */}
-        <div className="flex flex-1 min-w-0 flex-col" style={{ background: '#1a1f26' }}>
+        <div className="flex flex-1 min-w-0 flex-col">
 
-          {/* Chart label */}
+          {/* Chart label bar */}
           <div
             className="flex shrink-0 items-center px-3 py-1.5"
-            style={{ borderBottom: `1px solid ${BORDER_CLR}`, background: PANEL_BG }}
+            style={{ borderBottom: `1px solid ${BORDER_CLR}`, background: 'rgba(31,35,40,0.97)' }}
           >
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">TCC Plot</span>
           </div>
 
-          {/* Chart area */}
+          {/* Chart area — warm iced-coffee background */}
           <div
             ref={chartContainerRef}
             className="flex flex-1 min-h-0 overflow-hidden p-3"
+            style={{ background: CHART_BG }}
           >
-            <TCCChart
-              curves={curves}
-              faults={faults}
-              xfmr={xfmr}
-              plot={plot}
-            />
+            <TCCChart curves={curves} faults={faults} xfmr={xfmr} plot={plot} />
           </div>
 
           {/* Grading table — collapsible */}
@@ -214,7 +221,7 @@ export default function Home() {
             >
               <span>Grading Margin Table</span>
               <span
-                className="text-xs text-slate-500 transition-transform duration-200 inline-block"
+                className="inline-block text-xs text-slate-500 transition-transform duration-200"
                 style={{ transform: tableOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
               >
                 ▾
