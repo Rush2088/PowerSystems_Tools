@@ -47,6 +47,11 @@ export default function LandingPage() {
             description="IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV."
             onClick={() => navigate('/arc-flash')}
           />
+          <ToolCard
+            title="Protection Coordination"
+            description="Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table."
+            onClick={() => navigate('/prot-coord')}
+          />
         </div>
       </div>
     </main>
