@@ -31,12 +31,14 @@ function allMinorTicks(lo, hi) {
   return out;
 }
 
-// ── Custom fault-line label (offset clear of the dashed line) ─────────────────
+// ── Custom fault-line label (anchored at bottom of plot, reads upward) ────────
 function FaultLabel({ viewBox, value }) {
   if (!viewBox) return null;
-  const { x, y } = viewBox;
-  const lx = x + 10;   // 10 px right of the line
-  const ly = y + 16;   // a bit below the top edge
+  const { x, y, height } = viewBox;
+  const lx = x + 10;                      // 10 px right of the dashed line
+  const ly = y + (height ?? 300) - 8;     // bottom of the plot area
+  // With textAnchor="start" + rotate(-90°), the anchor sits at the BOTTOM of
+  // the rotated text and the letters read upward — fully inside the plot.
   return (
     <text
       x={lx} y={ly}
