@@ -15,7 +15,7 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
           Transformer R &amp; X Calculator
         </h1>
         <p className="mt-1 text-sm text-slate-300">
-          Series impedance from FAT nameplate &amp; short-circuit (load loss) test data
+          Derive R, X values from FAT Z &amp; loss data
         </p>
       </div>
 
@@ -55,7 +55,7 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
               <div className="summary-label">LV Voltage</div>
               {result && (
                 <div className="text-[12px] text-slate-400 mt-0.5">
-                  a = {result.turnsRatio.toFixed(1)} : 1
+                  Turns Ratio: {result.turnsRatio.toFixed(1)} : 1
                 </div>
               )}
             </div>
