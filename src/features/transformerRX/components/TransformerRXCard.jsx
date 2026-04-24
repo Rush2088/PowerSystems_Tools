@@ -51,12 +51,12 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
 
           {/* LV Voltage */}
           <div className="summary-chip">
-            <div className="flex items-center gap-2">
+            <div>
               <div className="summary-label">LV Voltage</div>
               {result && (
-                <span className="text-[10px] text-slate-400">
+                <div className="text-[12px] text-slate-400 mt-0.5">
                   a = {result.turnsRatio.toFixed(1)} : 1
-                </span>
+                </div>
               )}
             </div>
             <div className="flex items-center justify-between gap-3">
