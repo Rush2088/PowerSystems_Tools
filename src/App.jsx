@@ -4,6 +4,7 @@ import FaultCalcHome from './features/faultCalc/pages/Home';
 import GridImpedanceHome from './features/gridImpedance/pages/Home';
 import ArcFlashHome from './features/IEEE1584_ArcFlash/pages/Home';
 import ProtCoordHome from './features/protCoord/pages/Home';
+import TransformerRXHome from './features/transformerRX/pages/Home';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Route path="/grid-impedance"  element={<GridImpedanceHome />} />
       <Route path="/arc-flash"       element={<ArcFlashHome />} />
       <Route path="/prot-coord"      element={<ProtCoordHome />} />
+      <Route path="/transformer-rx"  element={<TransformerRXHome />} />
       <Route path="*"                element={<Navigate to="/" replace />} />
     </Routes>
   );
