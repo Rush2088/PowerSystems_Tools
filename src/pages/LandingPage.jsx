@@ -45,7 +45,7 @@ function ToolCard({ title, description, focused, onClick, cardRef }) {
           : 'border-cyan-300/20 bg-cyan-500/15 hover:bg-cyan-500/25',
       ].join(' ')}
     >
-      <div className="text-2xl font-extrabold tracking-tight">{title}</div>
+      <div className="text-lg font-extrabold tracking-tight">{title}</div>
       <div className="mt-2 text-xs italic text-slate-300">{description}</div>
       {focused && (
         <div className="mt-3 text-[10px] font-semibold uppercase tracking-widest text-cyan-400">
