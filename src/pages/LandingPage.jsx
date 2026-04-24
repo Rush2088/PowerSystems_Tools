@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const TOOLS = [
   {
     title: 'Fault Level Calculator',
-    description: 'IEC 60909 three-phase & L-G fault currents.',
+    description: 'IEC 60909 LLL & L-G fault currents.',
     route: '/fault-calc',
   },
   {
@@ -24,7 +24,7 @@ const TOOLS = [
   },
   {
     title: 'Transformer R & X Calculator',
-    description: 'Derive R, X from FAT Z & loss data.',
+    description: 'Derive R, X from FAT data.',
     route: '/transformer-rx',
   },
 ];
