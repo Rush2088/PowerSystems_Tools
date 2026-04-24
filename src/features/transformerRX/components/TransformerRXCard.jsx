@@ -51,7 +51,14 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
 
           {/* LV Voltage */}
           <div className="summary-chip">
-            <div className="summary-label">LV Voltage</div>
+            <div className="flex items-center gap-2">
+              <div className="summary-label">LV Voltage</div>
+              {result && (
+                <span className="text-[10px] text-slate-400">
+                  a = {result.turnsRatio.toFixed(1)} : 1
+                </span>
+              )}
+            </div>
             <div className="flex items-center justify-between gap-3">
               <div className="summary-input-wrap flex-none">
                 <input
@@ -117,22 +124,6 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
             </div>
           </div>
 
-          {/* Turns ratio — derived, read-only */}
-          {result && (
-            <div className="summary-chip opacity-70">
-              <div className="summary-label">Turns Ratio (a)</div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="summary-input-wrap flex-none">
-                  <input
-                    className="input-inline w-[7rem] cursor-default select-none"
-                    readOnly
-                    value={result.turnsRatio.toFixed(4)}
-                  />
-                </div>
-                <span className="unit-base shrink-0">HV/LV</span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -253,64 +244,6 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
                   {result.iRatedLV.toFixed(1)} A
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Impedance phasor diagram */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Impedance Phasor (per-unit)
-            </p>
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <svg viewBox="0 0 320 120" className="w-full max-w-sm">
-                {/* Axis */}
-                <line x1="20" y1="90" x2="300" y2="90" stroke="#475569" strokeWidth="1" />
-                <line x1="20" y1="10" x2="20" y2="100" stroke="#475569" strokeWidth="1" />
-                {/* Labels */}
-                <text x="305" y="94" fill="#94a3b8" fontSize="10">R</text>
-                <text x="22" y="9" fill="#94a3b8" fontSize="10">jX</text>
-
-                {(() => {
-                  const scale = 240 / (result.zPu * 1.15);
-                  const rx = 20 + result.rPu * scale;
-                  const ry = 90 - result.xPu * scale;
-                  const zx = 20 + result.zPu * scale * Math.cos(Math.atan2(result.xPu, result.rPu));
-                  const zy = 90 - result.zPu * scale * Math.sin(Math.atan2(result.xPu, result.rPu));
-                  return (
-                    <>
-                      {/* R arrow */}
-                      <line x1="20" y1="90" x2={rx} y2="90" stroke="#38bdf8" strokeWidth="2.5" markerEnd="url(#arrowR)" />
-                      {/* X arrow */}
-                      <line x1={rx} y1="90" x2={rx} y2={ry} stroke="#a78bfa" strokeWidth="2.5" markerEnd="url(#arrowX)" />
-                      {/* Z arrow */}
-                      <line x1="20" y1="90" x2={zx} y2={zy} stroke="#34d399" strokeWidth="2.5" strokeDasharray="5 3" markerEnd="url(#arrowZ)" />
-                      {/* Labels */}
-                      <text x={(20 + rx) / 2} y="106" fill="#38bdf8" fontSize="9" textAnchor="middle">R={pct(result.rPu)}%</text>
-                      <text x={rx + 6} y={(90 + ry) / 2 + 4} fill="#a78bfa" fontSize="9">X={pct(result.xPu)}%</text>
-                      <text x={(20 + zx) / 2 - 8} y={(90 + zy) / 2 - 4} fill="#34d399" fontSize="9">Z={pct(result.zPu)}%</text>
-                    </>
-                  );
-                })()}
-
-                <defs>
-                  <marker id="arrowR" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8" />
-                  </marker>
-                  <marker id="arrowX" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <path d="M0,0 L6,3 L0,6 Z" fill="#a78bfa" />
-                  </marker>
-                  <marker id="arrowZ" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <path d="M0,0 L6,3 L0,6 Z" fill="#34d399" />
-                  </marker>
-                </defs>
-              </svg>
-              <p className="mt-1 text-[10px] text-slate-500">
-                <span className="text-sky-400 font-semibold">━ R</span>
-                &ensp;
-                <span className="text-violet-400 font-semibold">━ jX</span>
-                &ensp;
-                <span className="text-emerald-400 font-semibold">╌ Z</span>
-              </p>
             </div>
           </div>
 
