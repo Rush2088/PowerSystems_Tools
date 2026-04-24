@@ -182,7 +182,7 @@ export default function ResultsCard({
             </select>
           </FieldCard>
 
-          <FieldCard label="LLL Fault Current" unit="kA">
+          <FieldCard label="LLL Fault Current (w.r.t the C-Factor)" unit="kA">
             <input
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
@@ -192,7 +192,7 @@ export default function ResultsCard({
             />
           </FieldCard>
 
-          <FieldCard label="LG Fault Current" unit="kA">
+          <FieldCard label="LG Fault Current (w.r.t the C-Factor)" unit="kA">
             <input
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
@@ -222,7 +222,7 @@ export default function ResultsCard({
             />
           </FieldCard>
 
-          <FieldCard label={<>C Factor <span className="text-[10px] text-slate-400 font-normal">(IEC 60909)</span></>} unit="">
+          <FieldCard label="C Factor" unit="">
             <input
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               type="number"
