@@ -39,7 +39,7 @@ function ToolCard({ title, description, focused, onClick, cardRef }) {
       onClick={onClick}
       tabIndex={0}
       className={[
-        'rounded-3xl border px-6 py-6 text-left text-white transition',
+        'rounded-2xl border px-4 py-4 text-left text-white transition',
         focused
           ? 'border-cyan-400 bg-cyan-500/20 shadow-[0_0_0_3px_rgba(34,211,238,0.35)] scale-[1.02]'
           : 'border-cyan-300/20 bg-cyan-500/15 hover:bg-cyan-500/25',
@@ -116,7 +116,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-4xl glass-card p-6 sm:p-8">
+      <div className="mx-auto max-w-3xl glass-card p-5 sm:p-6">
         <div className="max-w-2xl">
           <div className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
             Power System Tools
@@ -126,7 +126,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:mt-10 sm:grid-cols-2 sm:gap-5">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-3">
           {TOOLS.map((tool, i) => (
             <ToolCard
               key={tool.route}
