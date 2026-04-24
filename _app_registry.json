@@ -1,0 +1,35 @@
+{
+  "lastUpdated": "2026-04-24",
+  "apps": [
+    {
+      "featureName": "faultCalc",
+      "kebabRoute": "/fault-calc",
+      "title": "Fault Level Calculator",
+      "description": "IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution."
+    },
+    {
+      "featureName": "gridImpedance",
+      "kebabRoute": "/grid-impedance",
+      "title": "Grid Impedance Calculator",
+      "description": "Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels."
+    },
+    {
+      "featureName": "IEEE1584_ArcFlash",
+      "kebabRoute": "/arc-flash",
+      "title": "Arc Flash Calculator",
+      "description": "IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV."
+    },
+    {
+      "featureName": "protCoord",
+      "kebabRoute": "/prot-coord",
+      "title": "Protection Coordination",
+      "description": "Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table."
+    },
+    {
+      "featureName": "transformerRX",
+      "kebabRoute": "/transformer-rx",
+      "title": "Transformer R & X Calculator",
+      "description": "Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor."
+    }
+  ]
+}
