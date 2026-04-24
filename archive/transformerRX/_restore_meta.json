@@ -1,0 +1,7 @@
+{
+  "featureName": "transformerRX",
+  "kebabRoute": "/transformer-rx",
+  "landingTitle": "Transformer R & X Calculator",
+  "landingDescription": "Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor.",
+  "archivedAt": "2026-04-24"
+}

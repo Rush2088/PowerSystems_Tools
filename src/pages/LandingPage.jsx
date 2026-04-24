@@ -22,11 +22,6 @@ const TOOLS = [
     description: 'Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table.',
     route: '/prot-coord',
   },
-  {
-    title: 'Transformer R & X Calculator',
-    description: 'Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor.',
-    route: '/transformer-rx',
-  },
 ];
 
 const COLS = 2; // grid columns on sm+
