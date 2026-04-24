@@ -5,31 +5,36 @@
       "featureName": "faultCalc",
       "kebabRoute": "/fault-calc",
       "title": "Fault Level Calculator",
-      "description": "IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution."
+      "description": "IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution.",
+      "aliases": ["fault level", "fault calc", "short circuit", "sc calc", "isc", "iec 60909", "fault current", "short-circuit calculator"]
     },
     {
       "featureName": "gridImpedance",
       "kebabRoute": "/grid-impedance",
       "title": "Grid Impedance Calculator",
-      "description": "Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels."
+      "description": "Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels.",
+      "aliases": ["grid Z", "grid impedance", "source impedance", "Zs", "Z source", "positive sequence", "zero sequence", "pos seq", "zero seq", "grid Z calc", "network impedance"]
     },
     {
       "featureName": "IEEE1584_ArcFlash",
       "kebabRoute": "/arc-flash",
       "title": "Arc Flash Calculator",
-      "description": "IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV."
+      "description": "IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV.",
+      "aliases": ["arc flash", "arc-flash", "ieee 1584", "incident energy", "IE", "arc fault", "PPE", "arc boundary", "AFB", "arc flash boundary"]
     },
     {
       "featureName": "protCoord",
       "kebabRoute": "/prot-coord",
       "title": "Protection Coordination",
-      "description": "Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table."
+      "description": "Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table.",
+      "aliases": ["prot coord", "protection coordination", "TCC", "relay coordination", "overcurrent", "OC relay", "grading", "time current curve", "IDMT", "highset", "I2t"]
     },
     {
       "featureName": "transformerRX",
       "kebabRoute": "/transformer-rx",
       "title": "Transformer R & X Calculator",
-      "description": "Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor."
+      "description": "Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor.",
+      "aliases": ["transformer RX", "TX RX", "transformer impedance", "TX impedance", "FAT losses", "load losses", "transformer R and X", "transformer R X", "TX R X", "per unit impedance", "transformer Z", "TX Z", "series impedance"]
     }
   ]
 }
