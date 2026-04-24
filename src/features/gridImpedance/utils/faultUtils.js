@@ -16,6 +16,7 @@ export const DEFAULT_VALUES = {
   I_LG_kA: '40',
   XR_LLL: '14',
   XR_LG: '14',
+  c_factor: '1.0',
 };
 
 function calcRxFromZAndXr(zMag, xrRatio) {
@@ -24,7 +25,7 @@ function calcRxFromZAndXr(zMag, xrRatio) {
   return { R, X };
 }
 
-export function calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG) {
+export function calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG, c_factor = 1.0) {
   const S_base_MVA = 100.0;
   const V_LL = V_LL_kV * 1e3;
   const S_base = S_base_MVA * 1e6;
@@ -37,14 +38,15 @@ export function calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, X
   const I_LLL_pu = I_LLL_kA / I_base_kA;
   const I_LG_pu = I_LG_kA / I_base_kA;
 
-  const Z1_pu = 1 / I_LLL_pu;
+  // IEC 60909: Z = c × Vn / (√3 × Ik) → Z_pu = c / I_pu
+  const Z1_pu = c_factor / I_LLL_pu;
   const { R: R1_pu, X: X1_pu } = calcRxFromZAndXr(Z1_pu, XR_LLL);
 
   const Z2_pu = Z1_pu;
   const R2_pu = R1_pu;
   const X2_pu = X1_pu;
 
-  const Z_total_LG_pu = 3 / I_LG_pu;
+  const Z_total_LG_pu = (3 * c_factor) / I_LG_pu;
   const Z0_pu = Z_total_LG_pu - Z1_pu - Z2_pu;
   const { R: R0_pu, X: X0_pu } = calcRxFromZAndXr(Z0_pu, XR_LG);
 
@@ -79,6 +81,7 @@ export function calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, X
       XR_LLL,
       XR_LG,
     },
+    c_factor,
     Z1: {
       pu: { Z: Z1_pu, R: R1_pu, X: X1_pu },
       ohm: { Z: Z1_ohm, R: R1_ohm, X: X1_ohm },
@@ -99,14 +102,23 @@ export function validateInputs(values) {
     I_LG_kA: Number(values.I_LG_kA),
     XR_LLL: Number(values.XR_LLL),
     XR_LG: Number(values.XR_LG),
+    c_factor: Number(values.c_factor),
   };
 
-  const valid = Object.values(parsed).every((v) => Number.isFinite(v) && v > 0);
+  const { c_factor, ...rest } = parsed;
 
-  if (!valid) {
+  if (!Object.values(rest).every((v) => Number.isFinite(v) && v > 0)) {
     return {
       valid: false,
       message: 'Please enter valid positive values for all parameters.',
+      parsed,
+    };
+  }
+
+  if (!Number.isFinite(c_factor) || c_factor < 0.8 || c_factor > 1.1) {
+    return {
+      valid: false,
+      message: 'C factor must be between 0.80 and 1.10 (IEC 60909).',
       parsed,
     };
   }

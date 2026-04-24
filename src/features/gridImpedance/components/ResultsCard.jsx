@@ -26,6 +26,7 @@ function buildSummaryRows(result) {
         ['LG Fault Current', result.fault_currents.I_LG_kA.toFixed(1), 'kA'],
         ['X1/R1', result.xr_ratios.XR_LLL.toFixed(1), ''],
         ['X0/R0', result.xr_ratios.XR_LG.toFixed(1), ''],
+        ['C Factor', result.c_factor.toFixed(2), ''],
       ],
     },
     {
@@ -56,6 +57,7 @@ function buildSummaryText(result) {
     ['LG Fault Current', result.fault_currents.I_LG_kA.toFixed(1), 'kA'],
     ['X1/R1', result.xr_ratios.XR_LLL.toFixed(1), ''],
     ['X0/R0', result.xr_ratios.XR_LG.toFixed(1), ''],
+    ['C Factor', result.c_factor.toFixed(2), ''],
     ['', '', ''],
     ['Pos. Seq. Impedance', '', ''],
     ['Z1', formatComplex(result.Z1.pu.R, result.Z1.pu.X), 'pu'],
@@ -217,6 +219,18 @@ export default function ResultsCard({
               step="any"
               value={values.XR_LG}
               onChange={(e) => updateField('XR_LG', e.target.value)}
+            />
+          </FieldCard>
+
+          <FieldCard label={<>C Factor <span className="text-[10px] text-slate-400 font-normal">(IEC 60909)</span></>} unit="">
+            <input
+              className="input-inline w-[6.5rem] sm:w-[7rem]"
+              type="number"
+              step="0.01"
+              min="0.80"
+              max="1.10"
+              value={values.c_factor}
+              onChange={(e) => updateField('c_factor', e.target.value)}
             />
           </FieldCard>
         </div>

@@ -18,10 +18,10 @@ export default function Home() {
       return { result: null, error: validation.message };
     }
 
-    const { V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG } = validation.parsed;
+    const { V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG, c_factor } = validation.parsed;
 
     return {
-      result: calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG),
+      result: calculateSequenceImpedance(V_LL_kV, I_LLL_kA, I_LG_kA, XR_LLL, XR_LG, c_factor),
       error: '',
     };
   }, [values]);
