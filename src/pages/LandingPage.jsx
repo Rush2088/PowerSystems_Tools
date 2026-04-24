@@ -4,27 +4,27 @@ import { useNavigate } from 'react-router-dom';
 const TOOLS = [
   {
     title: 'Fault Level Calculator',
-    description: 'IEC 60909 short-circuit tool with transformer K-factor and optional inverter contribution.',
+    description: 'IEC 60909 three-phase & L-G fault currents.',
     route: '/fault-calc',
   },
   {
     title: 'Grid Impedance Calculator',
-    description: 'Calculate Pos. and Zero-sequence source impedance from LLL and LG fault levels.',
+    description: 'Pos. & zero-sequence Z from fault levels.',
     route: '/grid-impedance',
   },
   {
     title: 'Arc Flash Calculator',
-    description: 'IEEE 1584-2018 incident energy, arc-flash boundary and PPE category — VCB, VCBB, HCB, VOA, HOA · 208 V – 15 kV.',
+    description: 'IEEE 1584-2018 incident energy & PPE.',
     route: '/arc-flash',
   },
   {
     title: 'Protection Coordination',
-    description: 'Interactive overcurrent TCC plotter — IEC / ANSI / IEEE curves, highset stages, transformer I²t, grading margin table.',
+    description: 'IEC / ANSI overcurrent TCC curve plotter.',
     route: '/prot-coord',
   },
   {
     title: 'Transformer R & X Calculator',
-    description: 'Derive series resistance and reactance from FAT nameplate and short-circuit (load loss) test data — per-unit, HV and LV ohmic values, X/R ratio and impedance phasor.',
+    description: 'Derive R, X from FAT Z & loss data.',
     route: '/transformer-rx',
   },
 ];
