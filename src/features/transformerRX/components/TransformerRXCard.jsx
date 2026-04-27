@@ -4,7 +4,7 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
   }
 
   // Helper to format per-unit as percentage string
-  const pct = (pu) => (pu * 100).toFixed(4);
+  const pct = (pu) => (pu * 100).toFixed(3);
 
   return (
     <section className="glass-card p-4 sm:p-5">
@@ -169,19 +169,19 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">R<sub>HV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-slate-50 sm:text-xl">
-                  {result.rHV.toFixed(4)} Ω
+                  {result.rHV.toFixed(2)} Ω
                 </div>
               </div>
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">X<sub>HV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-slate-50 sm:text-xl">
-                  {result.xHV.toFixed(4)} Ω
+                  {result.xHV.toFixed(2)} Ω
                 </div>
               </div>
               <div className="result-tile result-tile-primary">
                 <div className="mb-1 text-xs text-white/80">Z<sub>HV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
-                  {result.zHV.toFixed(4)} Ω
+                  {result.zHV.toFixed(2)} Ω
                 </div>
               </div>
             </div>
@@ -196,19 +196,19 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">R<sub>LV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-slate-50 sm:text-xl">
-                  {result.rLV_mOhm.toFixed(3)} mΩ
+                  {result.rLV_mOhm.toFixed(2)} mΩ
                 </div>
               </div>
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">X<sub>LV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-slate-50 sm:text-xl">
-                  {result.xLV_mOhm.toFixed(3)} mΩ
+                  {result.xLV_mOhm.toFixed(2)} mΩ
                 </div>
               </div>
               <div className="result-tile result-tile-primary">
                 <div className="mb-1 text-xs text-white/80">Z<sub>LV</sub></div>
                 <div className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
-                  {result.zLV_mOhm.toFixed(3)} mΩ
+                  {result.zLV_mOhm.toFixed(2)} mΩ
                 </div>
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
               Key Metrics
             </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">X/R Ratio</div>
                 <div className="text-xl font-extrabold tracking-tight text-slate-50 sm:text-2xl">
@@ -227,21 +227,15 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
                 </div>
               </div>
               <div className="result-tile result-tile-alert">
-                <div className="mb-1 text-xs text-slate-400">SC Power Factor</div>
-                <div className="text-xl font-extrabold tracking-tight text-slate-50 sm:text-2xl">
-                  {result.scPF.toFixed(4)}
-                </div>
-              </div>
-              <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">I<sub>rated</sub> HV</div>
                 <div className="text-xl font-extrabold tracking-tight text-slate-50 sm:text-2xl">
-                  {result.iRatedHV.toFixed(1)} A
+                  {result.iRatedHV.toFixed(2)} A
                 </div>
               </div>
               <div className="result-tile result-tile-alert">
                 <div className="mb-1 text-xs text-slate-400">I<sub>rated</sub> LV</div>
                 <div className="text-xl font-extrabold tracking-tight text-slate-50 sm:text-2xl">
-                  {result.iRatedLV.toFixed(1)} A
+                  {result.iRatedLV.toFixed(2)} A
                 </div>
               </div>
             </div>
