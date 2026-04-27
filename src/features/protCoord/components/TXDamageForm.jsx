@@ -116,11 +116,20 @@ export default function TXDamageForm({ xfmr, setXfmr }) {
             );
           })()}
 
-          <div className="text-[9px] text-slate-500 mb-2">
-            K = {((xfmr.Isc * 1000) ** 2 * xfmr.dur).toFixed(0)} A²s
-            &nbsp;·&nbsp; elbow @ {(0.5 * xfmr.Isc).toFixed(2)} kA
-            &nbsp;·&nbsp; t@Isc<sub>max</sub> (frequent) = {(0.25 * xfmr.dur).toFixed(2)} s
-          </div>
+          {(() => {
+            const cat    = txCategory(xfmr.sMVA);
+            const brkPct = cat === 'II' ? 0.70 : 0.50;
+            const K1     = (xfmr.Isc * 1000) ** 2 * xfmr.dur;
+            const K2     = (xfmr.Isc * 1000) ** 2 * 2; // C57.109: anchored at Isc²×2 s
+            return (
+              <div className="text-[9px] text-slate-500 mb-2">
+                K<sub>1</sub> = {K1.toFixed(0)} A²s (thermal)
+                &nbsp;·&nbsp; K<sub>2</sub> = {K2.toFixed(0)} A²s (C57.109 mech.)
+                &nbsp;·&nbsp; elbow @ {(brkPct * xfmr.Isc).toFixed(2)} kA ({brkPct * 100}% Isc)
+                &nbsp;·&nbsp; t@Isc<sub>max</sub> = 2.00 s
+              </div>
+            );
+          })()}
 
           {/* Frequent-fault thermal damage boundary toggle */}
           {txCategory(xfmr.sMVA) !== 'I' && (

@@ -81,7 +81,7 @@ export function txCategory(sMVA) {
 }
 
 /**
- * Frequent-fault mechanical damage curve per IEEE C57.12.00 (Categories II–IV).
+ * Frequent-fault mechanical damage curve per IEEE C57.109 (Categories II–IV).
  *
  * The curve has THREE distinct segments on a log-log TCC chart:
  *
@@ -94,10 +94,13 @@ export function txCategory(sMVA) {
  *    produce a near-vertical line segment on the chart — this is the dog-leg elbow.
  *
  *  Segment 3 — Upper (more restrictive) diagonal (I > I_brk):
- *    t = K2 / I²   parallel to Segment 1 but shifted down by K2 = K1 / 4
- *    At Isc_max with dur = 2 s  →  t = dur / 4 = 0.5 s  (4× more restrictive)
+ *    t = K2 / I²   parallel to Segment 1, shifted down.
+ *    Per C57.109, K2 = Isc_max² × 2 s (worst-case mechanical test duration anchor).
  *
- *  Breakpoint: I_brk = 50 % of Isc_max (where the vertical step occurs).
+ *  Breakpoint per IEEE C57.109:
+ *    Category II  (Cl 4.2.1): I_brk = 70% of Isc_max
+ *    Category III (Cl 4.3.1.1): I_brk = 50% of Isc_max
+ *    Category IV  (Cl 4.3.2): single curve only — no dog-leg; call xfmrT instead
  *
  * The curve is capped at Isc_max — no fault can exceed the bolted short-circuit level.
  */
@@ -106,15 +109,18 @@ export function xfmrTFrequent(I_ref_kA, xf, refV) {
   const Isc_A = xf.Isc * 1000;                        // Isc stored in kA → convert to A
   const { dur } = xf;
   if (I_dev <= 0 || I_dev > Isc_A) return null;       // beyond Isc_max
-  const K1    = Isc_A ** 2 * dur;                      // thermal K (same as infrequent)
-  const K2    = K1 / 4;                                // frequent-fault K (4× restrictive)
-  const I_brk = 0.5 * Isc_A;                          // dog-leg breakpoint at 50% Isc_max
+  const K1    = Isc_A ** 2 * dur;                      // thermal K — infrequent fault (I²t anchored at Isc, t = dur)
+  // Per IEEE C57.109 Cl 4.2.1 / 4.3.1.1: frequent-fault k anchored at Isc_max² × 2 s
+  const K2    = Isc_A ** 2 * 2;
+  // Breakpoint: 70% for Cat II (C57.109 Cl 4.2.1), 50% for Cat III/IV (Cl 4.3.1.1)
+  const cat   = txCategory(xf.sMVA);
+  const I_brk = (cat === 'II' ? 0.70 : 0.50) * Isc_A;
   // Segment 1 (I ≤ breakpoint): same as thermal → overlaps the infrequent curve here
   // Segment 2 (at breakpoint): the abrupt K1→K2 step creates the near-vertical dog-leg
-  // Segment 3 (I > breakpoint): parallel diagonal, shifted down
+  // Segment 3 (I > breakpoint): parallel diagonal shifted down to K2
   const t = I_dev <= I_brk
     ? K1 / I_dev ** 2    // Segment 1
-    : K2 / I_dev ** 2;   // Segment 3  (Isc_A, K1, K2, I_brk all in amps)
+    : K2 / I_dev ** 2;   // Segment 3
   return (t > 0 && isFinite(t)) ? t : null;
 }
 
