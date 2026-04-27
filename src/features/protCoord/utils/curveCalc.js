@@ -82,16 +82,21 @@ export function txCategory(sMVA) {
 /**
  * Frequent-fault mechanical damage curve per IEEE C57.12.00 (Categories II–IV).
  *
- * The through-fault protection curve has two segments on a log-log TCC:
+ * The curve has THREE distinct segments on a log-log TCC chart:
  *
- *  Segment 1 — Thermal limit (same as infrequent curve):
- *    t = K / I²   for I ≤ 0.5 × Isc_max   (slope −2 on log-log)
+ *  Segment 1 — Lower diagonal (I ≤ I_brk):
+ *    t = K1 / I²   same slope and same line as the infrequent thermal curve
  *
- *  Segment 2 — Mechanical damage limit (the dog-leg elbow):
- *    t = K_mech / I⁴   for I > 0.5 × Isc_max   (slope −4 on log-log)
+ *  Segment 2 — Near-vertical drop at I = I_brk:
+ *    Time drops abruptly from K1/I_brk² to K2/I_brk² at constant current.
+ *    With 300 log-spaced data points the two adjacent values either side of I_brk
+ *    produce a near-vertical line segment on the chart — this is the dog-leg elbow.
  *
- *  K_mech is solved for continuity at the 50 % breakpoint, giving:
- *    at Isc_max with dur = 2 s  →  t_mech = 0.5 s  (4× more restrictive than thermal)
+ *  Segment 3 — Upper (more restrictive) diagonal (I > I_brk):
+ *    t = K2 / I²   parallel to Segment 1 but shifted down by K2 = K1 / 4
+ *    At Isc_max with dur = 2 s  →  t = dur / 4 = 0.5 s  (4× more restrictive)
+ *
+ *  Breakpoint: I_brk = 50 % of Isc_max (where the vertical step occurs).
  *
  * The curve is capped at Isc_max — no fault can exceed the bolted short-circuit level.
  */
@@ -99,15 +104,15 @@ export function xfmrTFrequent(I_ref_kA, xf, refV) {
   const I_dev = I_ref_kA * refV / xf.voltage * 1000; // amps at xfmr voltage
   const { Isc, dur } = xf;
   if (I_dev <= 0 || I_dev > Isc) return null;         // beyond Isc_max
-  const K     = Isc ** 2 * dur;                        // thermal K (same as xfmrT)
-  const I_brk = 0.5 * Isc;                             // elbow at 50 % of Isc_max
-  let t;
-  if (I_dev <= I_brk) {
-    t = K / I_dev ** 2;                                // thermal segment
-  } else {
-    const K_mech = K * I_brk ** 2;                    // ensures continuity at elbow
-    t = K_mech / I_dev ** 4;                           // mechanical segment (steeper)
-  }
+  const K1    = Isc ** 2 * dur;                        // thermal K (same as infrequent)
+  const K2    = K1 / 4;                                // frequent-fault K (4× restrictive)
+  const I_brk = 0.5 * Isc;                             // dog-leg breakpoint at 50% Isc_max
+  // Segment 1 (I ≤ breakpoint): same as thermal → overlaps the infrequent curve here
+  // Segment 2 (at breakpoint): the abrupt K1→K2 step creates the near-vertical dog-leg
+  // Segment 3 (I > breakpoint): parallel diagonal, shifted down
+  const t = I_dev <= I_brk
+    ? K1 / I_dev ** 2    // Segment 1
+    : K2 / I_dev ** 2;   // Segment 3
   return (t > 0 && isFinite(t)) ? t : null;
 }
 
