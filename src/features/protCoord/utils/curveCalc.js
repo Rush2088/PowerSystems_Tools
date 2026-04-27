@@ -136,7 +136,7 @@ export const mkCrv = (i, overrides = {}) => ({
 });
 
 export const INIT_CURVES = [
-  mkCrv(0, { label: "33kV Feeder 1", voltage: 33,  pickup: 750, tms: 0.06, curveType: "IEC SI", hs1on: true, hs1A: 5000, hs1t: 0 }),
+  mkCrv(0, { label: "33kV Feeder 1", voltage: 33,  pickup: 750, tms: 0.07, curveType: "IEC SI", hs1on: true, hs1A: 5000, hs1t: 0.1 }),
   mkCrv(1, { label: "11kV Feeder",   voltage: 11,  pickup: 300, tms: 0.2,  curveType: "IEC VI", hs1on: true, hs1A: 3000, hs1t: 0 }),
   mkCrv(2, { label: "0.4kV Board",   voltage: 0.4, pickup: 600, tms: 0.4,  curveType: "IEC EI" }),
   mkCrv(3), mkCrv(4), mkCrv(5),
