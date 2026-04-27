@@ -151,7 +151,7 @@ export const INIT_CURVES = [
 
 export const INIT_FAULTS = [
   { en: true, label: "Max 3ph fault",  I: 10,  V: 33 },
-  { en: true, label: "Min fault 11kV", I: 2.5, V: 11 },
+  { en: true, label: "Min 3ph fault",  I: 2.5, V: 11 },
 ];
 
 export const INIT_XFMR = {
