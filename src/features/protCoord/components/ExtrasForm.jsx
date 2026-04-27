@@ -101,7 +101,7 @@ export default function ExtrasForm({ plot, setPlot, faults, setFaults, xfmr, set
 
       <SectionHead>Transformer I²t</SectionHead>
       <div className="rounded-lg border border-white/10 bg-slate-800/60 p-2.5">
-        <Toggle label="Show transformer I²t curve" value={xfmr.en}
+        <Toggle label="Show through-fault withstand curve (IEEE C57.12.00)" value={xfmr.en}
           onChange={v => setXfmr(x => ({ ...x, en: v }))} />
         {xfmr.en && <>
           <TextField label="Label" value={xfmr.label}
@@ -130,8 +130,8 @@ export default function ExtrasForm({ plot, setPlot, faults, setFaults, xfmr, set
                   : 'bg-slate-700/40 text-slate-400 border border-white/10'}`}>
                 IEEE C57.12.00 Category {cat}
                 {hasDogLeg
-                  ? ' — dog-leg curve available'
-                  : ' — single curve only (no dog-leg)'}
+                  ? ' — dual-segment withstand curve'
+                  : ' — single withstand curve (thermal only)'}
               </div>
             );
           })()}
@@ -145,7 +145,7 @@ export default function ExtrasForm({ plot, setPlot, faults, setFaults, xfmr, set
           {/* Frequent-fault dog-leg toggle */}
           {txCategory(xfmr.sMVA) !== 'I' && (
             <Toggle
-              label="Show frequent-fault curve (IEEE C57.12.00 mechanical damage)"
+              label="Show mechanical damage boundary (frequent faults)"
               value={xfmr.showFrequent}
               onChange={v => setXfmr(x => ({ ...x, showFrequent: v }))}
             />

@@ -231,12 +231,12 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
           />
         ))}
 
-        {/* ── Transformer I²t — infrequent fault / thermal limit ── */}
+        {/* ── Transformer thermal damage boundary (infrequent faults) ── */}
         {xfmr.en && (
           <Line
             type="monotone"
             dataKey="xfmr"
-            name={`${xfmr.label} (infreq.)`}
+            name={`${xfmr.label} — Thermal Boundary`}
             stroke="rgba(71,85,105,0.75)"
             strokeWidth={2.5}
             strokeDasharray="9 4"
@@ -246,12 +246,12 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
           />
         )}
 
-        {/* ── Transformer frequent-fault dog-leg (IEEE C57.12.00 Cat II–IV) ── */}
+        {/* ── Transformer mechanical damage boundary (frequent faults, Cat II–IV) ── */}
         {xfmr.en && xfmr.showFrequent && txCategory(xfmr.sMVA) !== 'I' && (
           <Line
             type="monotone"
             dataKey="xfmr_freq"
-            name={`${xfmr.label} (frequent)`}
+            name={`${xfmr.label} — Mechanical Boundary`}
             stroke="rgba(220,38,38,0.75)"
             strokeWidth={2.5}
             strokeDasharray="5 3"
