@@ -158,4 +158,4 @@ export const INIT_XFMR = {
   showFrequent: true, // show frequent-fault mechanical damage curve (dog-leg)
 };
 
-export const INIT_PLOT = { refV: 33, Ilo: 0.01, Ihi: 50, tlo: 0.001, thi: 1000, tlim: 1000 };
+export const INIT_PLOT = { refV: 33, Ilo: 0.01, Ihi: 50, tlo: 0.05, thi: 100, tlim: 100 };
