@@ -65,6 +65,52 @@ export function xfmrT(I_ref_kA, xf, refV) {
   return (t > 0 && isFinite(t)) ? t : null;
 }
 
+/**
+ * Transformer category per IEEE C57.12.00 (three-phase MVA rating).
+ * Category I  : ≤ 0.5 MVA  — single curve only, no dog-leg
+ * Category II : 0.5–5 MVA  — dog-leg applies
+ * Category III: 5–30 MVA   — dog-leg applies
+ * Category IV : > 30 MVA   — dog-leg applies
+ */
+export function txCategory(sMVA) {
+  if (sMVA <= 0.5) return 'I';
+  if (sMVA <= 5)   return 'II';
+  if (sMVA <= 30)  return 'III';
+  return 'IV';
+}
+
+/**
+ * Frequent-fault mechanical damage curve per IEEE C57.12.00 (Categories II–IV).
+ *
+ * The through-fault protection curve has two segments on a log-log TCC:
+ *
+ *  Segment 1 — Thermal limit (same as infrequent curve):
+ *    t = K / I²   for I ≤ 0.5 × Isc_max   (slope −2 on log-log)
+ *
+ *  Segment 2 — Mechanical damage limit (the dog-leg elbow):
+ *    t = K_mech / I⁴   for I > 0.5 × Isc_max   (slope −4 on log-log)
+ *
+ *  K_mech is solved for continuity at the 50 % breakpoint, giving:
+ *    at Isc_max with dur = 2 s  →  t_mech = 0.5 s  (4× more restrictive than thermal)
+ *
+ * The curve is capped at Isc_max — no fault can exceed the bolted short-circuit level.
+ */
+export function xfmrTFrequent(I_ref_kA, xf, refV) {
+  const I_dev = I_ref_kA * refV / xf.voltage * 1000; // amps at xfmr voltage
+  const { Isc, dur } = xf;
+  if (I_dev <= 0 || I_dev > Isc) return null;         // beyond Isc_max
+  const K     = Isc ** 2 * dur;                        // thermal K (same as xfmrT)
+  const I_brk = 0.5 * Isc;                             // elbow at 50 % of Isc_max
+  let t;
+  if (I_dev <= I_brk) {
+    t = K / I_dev ** 2;                                // thermal segment
+  } else {
+    const K_mech = K * I_brk ** 2;                    // ensures continuity at elbow
+    t = K_mech / I_dev ** 4;                           // mechanical segment (steeper)
+  }
+  return (t > 0 && isFinite(t)) ? t : null;
+}
+
 export function minorTks(maj) {
   const out = [];
   for (let i = 0; i < maj.length - 1; i++) {
@@ -101,6 +147,10 @@ export const INIT_FAULTS = [
   { en: true, label: "Min fault 11kV", I: 2.5, V: 11 },
 ];
 
-export const INIT_XFMR = { en: true, label: "Tx I²t", voltage: 11, Isc: 500, dur: 2 };
+export const INIT_XFMR = {
+  en: true, label: "Tx I²t", voltage: 11, Isc: 500, dur: 2,
+  sMVA: 5,            // transformer MVA rating — used to determine IEEE C57.12.00 category
+  showFrequent: true, // show frequent-fault mechanical damage curve (dog-leg)
+};
 
 export const INIT_PLOT = { refV: 33, Ilo: 0.01, Ihi: 50, tlo: 0.001, thi: 1000, tlim: 1000 };

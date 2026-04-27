@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ReferenceLine, ResponsiveContainer, Legend,
 } from 'recharts';
-import { logSpace, curveT, xfmrT } from '../utils/curveCalc';
+import { logSpace, curveT, xfmrT, xfmrTFrequent, txCategory } from '../utils/curveCalc';
 
 // ── Tick label formatter ───────────────────────────────────────────────────────
 const fmtTick = v =>
@@ -104,6 +104,12 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
       if (xfmr.en) {
         const t = xfmrT(I, xfmr, refV);
         pt.xfmr = (t && t > 0 && isFinite(t) && t >= tlo) ? t : undefined;
+
+        // Frequent-fault dog-leg curve (IEEE C57.12.00, Categories II–IV only)
+        if (xfmr.showFrequent && txCategory(xfmr.sMVA) !== 'I') {
+          const tf = xfmrTFrequent(I, xfmr, refV);
+          pt.xfmr_freq = (tf && tf > 0 && isFinite(tf) && tf >= tlo) ? tf : undefined;
+        }
       }
       return pt;
     });
@@ -223,15 +229,30 @@ export default function TCCChart({ curves, faults, xfmr, plot }) {
           />
         ))}
 
-        {/* ── Transformer I²t ── */}
+        {/* ── Transformer I²t — infrequent fault / thermal limit ── */}
         {xfmr.en && (
           <Line
             type="monotone"
             dataKey="xfmr"
-            name={xfmr.label}
-            stroke="rgba(71,85,105,0.7)"
+            name={`${xfmr.label} (infreq.)`}
+            stroke="rgba(71,85,105,0.75)"
             strokeWidth={2.5}
             strokeDasharray="9 4"
+            dot={false}
+            connectNulls={false}
+            isAnimationActive={false}
+          />
+        )}
+
+        {/* ── Transformer frequent-fault dog-leg (IEEE C57.12.00 Cat II–IV) ── */}
+        {xfmr.en && xfmr.showFrequent && txCategory(xfmr.sMVA) !== 'I' && (
+          <Line
+            type="monotone"
+            dataKey="xfmr_freq"
+            name={`${xfmr.label} (frequent)`}
+            stroke="rgba(220,38,38,0.75)"
+            strokeWidth={2.5}
+            strokeDasharray="5 3"
             dot={false}
             connectNulls={false}
             isAnimationActive={false}

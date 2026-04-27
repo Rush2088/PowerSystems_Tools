@@ -1,3 +1,5 @@
+import { txCategory } from '../utils/curveCalc';
+
 // ── Shared form primitives (same as CurveForm) ───────────────────────────────
 
 function Field({ label, children }) {
@@ -104,17 +106,50 @@ export default function ExtrasForm({ plot, setPlot, faults, setFaults, xfmr, set
         {xfmr.en && <>
           <TextField label="Label" value={xfmr.label}
             onChange={v => setXfmr(x => ({ ...x, label: v }))} />
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <NumField label="Xfmr kV" value={xfmr.voltage} min={0.1} step={0.1}
               onChange={v => setXfmr(x => ({ ...x, voltage: v }))} />
-            <NumField label="Isc (A)" value={xfmr.Isc} min={1} step={1}
+            <NumField label="Rating (MVA)" value={xfmr.sMVA} min={0.001} step={0.1}
+              onChange={v => setXfmr(x => ({ ...x, sMVA: v }))} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <NumField label="Isc max (A)" value={xfmr.Isc} min={1} step={1}
               onChange={v => setXfmr(x => ({ ...x, Isc: v }))} />
             <NumField label="Duration (s)" value={xfmr.dur} min={0.1} step={0.1}
               onChange={v => setXfmr(x => ({ ...x, dur: v }))} />
           </div>
-          <div className="mt-1 text-[9px] text-slate-500">
+
+          {/* IEEE C57.12.00 category badge */}
+          {(() => {
+            const cat = txCategory(xfmr.sMVA);
+            const hasDogLeg = cat !== 'I';
+            return (
+              <div className={`mt-1.5 mb-2 rounded px-2 py-1 text-[9px] font-semibold
+                ${hasDogLeg
+                  ? 'bg-cyan-900/40 text-cyan-300 border border-cyan-500/30'
+                  : 'bg-slate-700/40 text-slate-400 border border-white/10'}`}>
+                IEEE C57.12.00 Category {cat}
+                {hasDogLeg
+                  ? ' — dog-leg curve available'
+                  : ' — single curve only (no dog-leg)'}
+              </div>
+            );
+          })()}
+
+          <div className="text-[9px] text-slate-500 mb-2">
             K = {(xfmr.Isc ** 2 * xfmr.dur).toFixed(0)} A²s
+            &nbsp;·&nbsp; elbow @ {(0.5 * xfmr.Isc).toFixed(0)} A
+            &nbsp;·&nbsp; t@Isc<sub>max</sub> (frequent) = {(0.25 * xfmr.dur).toFixed(2)} s
           </div>
+
+          {/* Frequent-fault dog-leg toggle */}
+          {txCategory(xfmr.sMVA) !== 'I' && (
+            <Toggle
+              label="Show frequent-fault curve (IEEE C57.12.00 mechanical damage)"
+              value={xfmr.showFrequent}
+              onChange={v => setXfmr(x => ({ ...x, showFrequent: v }))}
+            />
+          )}
         </>}
       </div>
     </div>
