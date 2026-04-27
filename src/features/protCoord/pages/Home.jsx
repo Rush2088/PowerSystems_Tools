@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import TCCChart    from '../components/TCCChart';
-import GradingTable from '../components/GradingTable';
-import CurveForm   from '../components/CurveForm';
-import ExtrasForm  from '../components/ExtrasForm';
+import TCCChart      from '../components/TCCChart';
+import GradingTable  from '../components/GradingTable';
+import CurveForm     from '../components/CurveForm';
+import ExtrasForm    from '../components/ExtrasForm';
+import TXDamageForm  from '../components/TXDamageForm';
 import {
   INIT_CURVES, INIT_FAULTS, INIT_XFMR, INIT_PLOT,
   logSpace, curveT,
@@ -156,10 +157,26 @@ export default function Home() {
                 Curve {i + 1}
               </button>
             ))}
+            {/* TX Damage Curve tab */}
             <button
-              onClick={() => setTab(6)}
+              onClick={() => setTab(4)}
+              className={`flex items-center gap-1.5 rounded px-2 py-1 text-[11px] transition
+                ${tab === 4
+                  ? 'bg-amber-500/20 font-semibold text-amber-300 border border-amber-500/40'
+                  : 'text-slate-400 hover:text-slate-200'
+                }`}
+            >
+              <span
+                className="inline-block h-2 w-2 shrink-0 rounded-full"
+                style={{ background: xfmr.en ? 'rgba(251,191,36,0.85)' : 'rgba(251,191,36,0.25)' }}
+              />
+              TX
+            </button>
+            {/* Settings tab */}
+            <button
+              onClick={() => setTab(5)}
               className={`rounded px-2.5 py-1 text-[11px] font-semibold transition
-                ${tab === 6
+                ${tab === 5
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                   : 'border border-cyan-500/20 text-cyan-500/70 hover:text-cyan-400'
                 }`}
@@ -168,8 +185,8 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Active curve name */}
-          {tab < 6 && (
+          {/* Active tab name bar */}
+          {tab < 4 && (
             <div
               className="px-3 py-1.5 text-[11px] font-semibold"
               style={{ color: curves[tab].color, borderBottom: `1px solid ${BORDER_CLR}` }}
@@ -177,12 +194,22 @@ export default function Home() {
               {curves[tab].label}
             </div>
           )}
+          {tab === 4 && (
+            <div
+              className="px-3 py-1.5 text-[11px] font-semibold"
+              style={{ color: 'rgba(251,191,36,0.9)', borderBottom: `1px solid ${BORDER_CLR}` }}
+            >
+              TX Damage Curve
+            </div>
+          )}
 
           {/* Form */}
           <div className="flex-1 overflow-y-auto px-3 py-2">
-            {tab < 6
+            {tab < 4
               ? <CurveForm crv={curves[tab]} onChange={(k, v) => updCrv(tab, k, v)} />
-              : <ExtrasForm plot={plot} setPlot={setPlot} faults={faults} setFaults={setFaults} xfmr={xfmr} setXfmr={setXfmr} />
+              : tab === 4
+                ? <TXDamageForm xfmr={xfmr} setXfmr={setXfmr} />
+                : <ExtrasForm plot={plot} setPlot={setPlot} faults={faults} setFaults={setFaults} />
             }
           </div>
         </div>

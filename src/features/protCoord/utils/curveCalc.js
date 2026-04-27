@@ -59,7 +59,8 @@ export function curveT(I_ref_kA, crv, refV) {
 }
 
 export function xfmrT(I_ref_kA, xf, refV) {
-  const K = xf.Isc ** 2 * xf.dur;
+  const Isc_A = xf.Isc * 1000;                        // Isc stored in kA → convert to A
+  const K = Isc_A ** 2 * xf.dur;
   const I_dev = I_ref_kA * refV / xf.voltage * 1000;
   const t = K / I_dev ** 2;
   return (t > 0 && isFinite(t)) ? t : null;
@@ -102,17 +103,18 @@ export function txCategory(sMVA) {
  */
 export function xfmrTFrequent(I_ref_kA, xf, refV) {
   const I_dev = I_ref_kA * refV / xf.voltage * 1000; // amps at xfmr voltage
-  const { Isc, dur } = xf;
-  if (I_dev <= 0 || I_dev > Isc) return null;         // beyond Isc_max
-  const K1    = Isc ** 2 * dur;                        // thermal K (same as infrequent)
+  const Isc_A = xf.Isc * 1000;                        // Isc stored in kA → convert to A
+  const { dur } = xf;
+  if (I_dev <= 0 || I_dev > Isc_A) return null;       // beyond Isc_max
+  const K1    = Isc_A ** 2 * dur;                      // thermal K (same as infrequent)
   const K2    = K1 / 4;                                // frequent-fault K (4× restrictive)
-  const I_brk = 0.5 * Isc;                             // dog-leg breakpoint at 50% Isc_max
+  const I_brk = 0.5 * Isc_A;                          // dog-leg breakpoint at 50% Isc_max
   // Segment 1 (I ≤ breakpoint): same as thermal → overlaps the infrequent curve here
   // Segment 2 (at breakpoint): the abrupt K1→K2 step creates the near-vertical dog-leg
   // Segment 3 (I > breakpoint): parallel diagonal, shifted down
   const t = I_dev <= I_brk
     ? K1 / I_dev ** 2    // Segment 1
-    : K2 / I_dev ** 2;   // Segment 3
+    : K2 / I_dev ** 2;   // Segment 3  (Isc_A, K1, K2, I_brk all in amps)
   return (t > 0 && isFinite(t)) ? t : null;
 }
 
@@ -141,10 +143,10 @@ export const mkCrv = (i, overrides = {}) => ({
 });
 
 export const INIT_CURVES = [
-  mkCrv(0, { label: "33kV Feeder 1", voltage: 33,  pickup: 750, tms: 0.07, curveType: "IEC SI", hs1on: true, hs1A: 5000, hs1t: 0.1 }),
+  mkCrv(0, { label: "33kV Feeder 1", voltage: 33,  pickup: 500, tms: 0.07, curveType: "IEC SI", hs1on: true, hs1A: 5000, hs1t: 0.1 }),
   mkCrv(1, { label: "11kV Feeder",   voltage: 11,  pickup: 300, tms: 0.2,  curveType: "IEC VI", hs1on: true, hs1A: 3000, hs1t: 0 }),
   mkCrv(2, { label: "0.4kV Board",   voltage: 0.4, pickup: 600, tms: 0.4,  curveType: "IEC EI" }),
-  mkCrv(3), mkCrv(4), mkCrv(5),
+  mkCrv(3),
 ];
 
 export const INIT_FAULTS = [
@@ -153,8 +155,8 @@ export const INIT_FAULTS = [
 ];
 
 export const INIT_XFMR = {
-  en: true, label: "Tx I²t", voltage: 11, Isc: 500, dur: 2,
-  sMVA: 5,            // transformer MVA rating — used to determine IEEE C57.12.00 category
+  en: true, label: "TX Damage Curve", voltage: 33, Isc: 2, dur: 5,
+  sMVA: 100,          // transformer MVA rating — used to determine IEEE C57.12.00 category
   showFrequent: true, // show frequent-fault mechanical damage curve (dog-leg)
 };
 
