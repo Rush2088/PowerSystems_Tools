@@ -136,7 +136,7 @@ export default function TransformerRXCard({ values, setValues, result, error }) 
           {/* Per-unit row */}
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Per-Unit Values
+              Impedance (%) on {values.sMVA} MVA Base
             </p>
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
               <div className="result-tile result-tile-alert">
