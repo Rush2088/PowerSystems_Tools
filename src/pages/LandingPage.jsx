@@ -27,6 +27,11 @@ const TOOLS = [
     description: 'Derive R, X from FAT data.',
     route: '/transformer-rx',
   },
+  {
+    title: 'K\u209C Factor Calculator',
+    description: 'IEC 60909 cl.6.3.3 K\u209C factor for Main TX and SUT with sensitivity charts.',
+    route: '/kt-factor',
+  },
 ];
 
 const COLS = 2; // grid columns on sm+
