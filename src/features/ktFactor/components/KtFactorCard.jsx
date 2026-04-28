@@ -200,10 +200,10 @@ export default function KtFactorCard({ mainValues, setMainValues, sutValues, set
       {/* Title */}
       <div className="glass-card p-4 sm:p-5">
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[1.75rem]">
-          K<sub>T</sub> Factor Calculator
+          Transformer Imp. Correction Factor (K Factor)
         </h1>
         <p className="mt-1 text-sm text-slate-300">
-          IEC 60909-0:2016 cl.6.3.3 Eq.(12) · K<sub>T</sub> = 0.95 · c / (1 + 0.6 · x<sub>T</sub>)
+          IEC 60909 cl.6.3.3 K Factor Impact Analysis
         </p>
         <p className="mt-2 text-xs text-slate-500 leading-relaxed">
           Corrects transformer impedance for short-circuit calculations. x<sub>T</sub> derived from Z<sub>T</sub>% and X/R ratio.
