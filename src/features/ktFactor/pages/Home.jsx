@@ -2,10 +2,13 @@ import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import KtFactorCard from '../components/KtFactorCard';
 import { DEFAULT_MAIN, DEFAULT_SUT } from '../utils/ktFactorCalc';
+import { useHomeNavKey } from '../../../hooks/useHomeNavKey';
 
 export default function Home() {
   const [mainValues, setMainValues] = useState(DEFAULT_MAIN);
   const [sutValues,  setSutValues]  = useState(DEFAULT_SUT);
+
+  useHomeNavKey();
 
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
