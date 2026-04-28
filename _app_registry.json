@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-04-24",
+  "lastUpdated": "2026-04-28",
   "apps": [
     {
       "featureName": "faultCalc",
@@ -35,6 +35,13 @@
       "title": "Transformer R & X Calculator",
       "description": "Derive R, X values from FAT Z & loss data — per-unit, HV and LV ohmic values, X/R ratio, SC power factor, rated currents, and turns ratio.",
       "aliases": ["transformer RX", "TX RX", "transformer impedance", "TX impedance", "FAT losses", "load losses", "transformer R and X", "transformer R X", "TX R X", "per unit impedance", "transformer Z", "TX Z", "series impedance"]
+    },
+    {
+      "featureName": "ktFactor",
+      "kebabRoute": "/kt-factor",
+      "title": "KT Factor Calculator",
+      "description": "IEC 60909-0 cl.6.3.3 transformer correction factor KT for Main TX and SUT — sensitivity charts vs ZT% and voltage factor c.",
+      "aliases": ["KT", "KT factor", "k factor transformer", "transformer correction factor", "iec 60909 kt", "kt calc", "voltage factor", "impedance correction", "substation kt", "kt comparison"]
     }
   ]
 }
