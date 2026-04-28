@@ -10,21 +10,19 @@ const MC  = '#38bdf8';   // sky-400 (main TX)
 const SC  = '#4ade80';   // green-400 (SUT)
 const RED = '#f87171';   // red-400 (marker dot)
 
-// ── Sub-component: one input row ────────────────────────────────────────────
-function InputRow({ label, name, value, onChange, min, max, step, unit }) {
+// ── Compact input field ─────────────────────────────────────────────────────
+function InputField({ label, name, value, onChange, min, max, step, unit }) {
   return (
-    <div className="summary-chip">
-      <div className="summary-label">{label}</div>
-      <div className="flex items-center gap-2">
-        <div className="summary-input-wrap">
-          <input
-            className="input-inline w-[6rem]"
-            type="number" step={step} min={min} max={max}
-            value={value}
-            onChange={e => onChange(name, e.target.value)}
-          />
-        </div>
-        {unit && <span className="unit-base shrink-0">{unit}</span>}
+    <div className="flex flex-col gap-1 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2">
+      <span className="text-[10px] text-slate-400 leading-none">{label}</span>
+      <div className="flex items-center gap-1">
+        <input
+          className="input-inline flex-1 min-w-0 w-full"
+          type="number" step={step} min={min} max={max}
+          value={value}
+          onChange={e => onChange(name, e.target.value)}
+        />
+        {unit && <span className="text-[11px] text-slate-400 shrink-0 w-6 text-right">{unit}</span>}
       </div>
     </div>
   );
@@ -59,27 +57,29 @@ function ResultStrip({ res, p, accent }) {
   );
 }
 
-// ── Mini chart: KT vs ZT% ────────────────────────────────────────────────────
+// ── Chart: KT vs ZT% ────────────────────────────────────────────────────────
 function ZChart({ p, res, accent }) {
-  const data = useMemo(() => sweepZ(p), [p]);
+  const zLo = +(p.zt * 0.80).toFixed(3);
+  const zHi = +(p.zt * 1.20).toFixed(3);
+  const data  = useMemo(() => sweepZ(p), [p]);
   const yVals = data.map(d => d.y);
-  const yMin  = (Math.min(...yVals) * 0.98).toFixed(3) * 1;
-  const yMax  = (Math.max(...yVals) * 1.02).toFixed(3) * 1;
+  const yMin  = +(Math.min(...yVals) * 0.998).toFixed(4);
+  const yMax  = +(Math.max(...yVals) * 1.002).toFixed(4);
 
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">K<sub>T</sub> vs Z<sub>T</sub>%</div>
-      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept ±20% · fixed X/R &amp; c</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept ±20% of entered value · fixed X/R &amp; c</div>
       <ResponsiveContainer width="100%" height={170}>
-        <LineChart data={data} margin={{ top: 6, right: 8, bottom: 20, left: 0 }}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={['auto', 'auto']}
-            tick={{ fill: '#94a3b8', fontSize: 9 }} tickCount={5}
-            tickFormatter={v => v.toFixed(1)}>
+          <XAxis dataKey="x" type="number" domain={[zLo, zHi]}
+            tick={{ fill: '#94a3b8', fontSize: 9 }} tickCount={6}
+            tickFormatter={v => (+v).toFixed(1)}>
             <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
           </XAxis>
           <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
-            tickFormatter={v => v.toFixed(3)} width={46} />
+            tickFormatter={v => v.toFixed(3)} width={48} />
           <Tooltip
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
             labelFormatter={v => `ZT = ${(+v).toFixed(2)}%`}
@@ -94,28 +94,28 @@ function ZChart({ p, res, accent }) {
   );
 }
 
-// ── Mini chart: KT vs c ─────────────────────────────────────────────────────
+// ── Chart: KT vs c ──────────────────────────────────────────────────────────
 function CChart({ p, res, accent }) {
   const data  = useMemo(() => sweepC(p), [p]);
   const yVals = data.map(d => d.y);
-  const yMin  = (Math.min(...yVals) * 0.98).toFixed(3) * 1;
-  const yMax  = (Math.max(...yVals) * 1.02).toFixed(3) * 1;
+  const yMin  = +(Math.min(...yVals) * 0.998).toFixed(4);
+  const yMax  = +(Math.max(...yVals) * 1.002).toFixed(4);
 
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">K<sub>T</sub> vs Voltage Factor c</div>
       <div className="text-[10px] text-slate-500 mb-2">c swept 0.90–1.15 · fixed Z<sub>T</sub> &amp; MVA</div>
       <ResponsiveContainer width="100%" height={170}>
-        <LineChart data={data} margin={{ top: 6, right: 8, bottom: 20, left: 0 }}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis dataKey="x" type="number" domain={[0.9, 1.15]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
             ticks={[0.90, 0.95, 1.00, 1.05, 1.10, 1.15]}
-            tickFormatter={v => v.toFixed(2)}>
+            tickFormatter={v => (+v).toFixed(2)}>
             <Label value="c factor" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
           </XAxis>
           <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
-            tickFormatter={v => v.toFixed(3)} width={46} />
+            tickFormatter={v => v.toFixed(3)} width={48} />
           <Tooltip
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
             labelFormatter={v => `c = ${(+v).toFixed(3)}`}
@@ -130,7 +130,7 @@ function CChart({ p, res, accent }) {
   );
 }
 
-// ── TX panel: inputs + results + charts ─────────────────────────────────────
+// ── TX panel ─────────────────────────────────────────────────────────────────
 function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
   const validation = useMemo(() => validateTx(values), [values]);
   const res = useMemo(() => {
@@ -147,6 +147,7 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
   return (
     <div className="glass-card p-4 sm:p-5 flex flex-col gap-4"
       style={{ borderTop: `3px solid ${borderColor}` }}>
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded"
@@ -162,14 +163,20 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
         </div>
       )}
 
-      {/* Inputs grid */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
-        <InputRow label="MVA rating"     name="mva" value={values.mva} onChange={update} min={0.1}  max={2000}  step={0.1}  unit="MVA" />
-        <InputRow label="ZT (%)"         name="zt"  value={values.zt}  onChange={update} min={1}    max={30}    step={0.1}  unit="%" />
-        <InputRow label="HV (kV)"        name="hv"  value={values.hv}  onChange={update} min={1}    max={800}   step={1}    unit="kV" />
-        <InputRow label="LV (kV)"        name="lv"  value={values.lv}  onChange={update} min={0.01} max={400}   step={0.01} unit="kV" />
-        <InputRow label="X/R ratio"      name="xr"  value={values.xr}  onChange={update} min={1}    max={100}   step={1}    unit="" />
-        <InputRow label="c (max)"        name="c"   value={values.c}   onChange={update} min={0.9}  max={1.15}  step={0.01} unit="" />
+      {/* Inputs — 3 rows × 2 cols, each cell self-contained */}
+      <div className="grid grid-cols-2 gap-2">
+        <InputField label="MVA rating" name="mva" value={values.mva} onChange={update}
+          min={0.1} max={2000} step={0.1} unit="MVA" />
+        <InputField label="ZT (%)" name="zt" value={values.zt} onChange={update}
+          min={1} max={30} step={0.1} unit="%" />
+        <InputField label="HV (kV)" name="hv" value={values.hv} onChange={update}
+          min={1} max={800} step={1} unit="kV" />
+        <InputField label="LV (kV)" name="lv" value={values.lv} onChange={update}
+          min={0.01} max={400} step={0.01} unit="kV" />
+        <InputField label="X/R ratio" name="xr" value={values.xr} onChange={update}
+          min={1} max={100} step={1} unit="" />
+        <InputField label="c (max)" name="c" value={values.c} onChange={update}
+          min={0.9} max={1.15} step={0.01} unit="" />
       </div>
 
       {/* Result strip */}
@@ -198,13 +205,13 @@ export default function KtFactorCard({ mainValues, setMainValues, sutValues, set
         <p className="mt-1 text-sm text-slate-300">
           IEC 60909-0:2016 cl.6.3.3 Eq.(12) · K<sub>T</sub> = 0.95 · c / (1 + 0.6 · x<sub>T</sub>)
         </p>
-        <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+        <p className="mt-2 text-xs text-slate-500 leading-relaxed">
           Corrects transformer impedance for short-circuit calculations. x<sub>T</sub> derived from Z<sub>T</sub>% and X/R ratio.
           K<sub>T</sub>·Z<sub>T</sub>(Ω) is the corrected LV-referred impedance used in the fault loop.
         </p>
       </div>
 
-      {/* Two transformer panels side by side on lg+ */}
+      {/* Two panels side by side on lg+ */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <TxPanel
           tag="Main TX" name="HV / MV transformer"
