@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useId } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   pixelToData, recomputeAllSeries, getTransform,
   imgToCanvas, canvasToImg,
@@ -11,9 +11,38 @@ const uid = () => String(++_uid);
 
 // ─── Initial state helpers ────────────────────────────────────────────────────
 const mkSeries = (name, color) => ({ id: uid(), name, color, points: [] });
-
 const INIT_CALIB_VALUES = { x1: '', x2: '', y1: '', y2: '' };
-const INIT_CALIB_PIXELS = [null, null, null, null]; // 4 slots: X1 X2 Y1 Y2
+const INIT_CALIB_PIXELS = [null, null, null, null];
+
+// ─── Step indicator component ─────────────────────────────────────────────────
+function StepBadge({ num, label, active, done }) {
+  return (
+    <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
+      active  ? 'bg-cyan-500/20 border border-cyan-400/40 text-cyan-200' :
+      done    ? 'bg-green-500/10 border border-green-400/20 text-green-300' :
+                'bg-white/5 border border-white/10 text-slate-500'
+    }`}>
+      <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+        active  ? 'bg-cyan-500 text-white' :
+        done    ? 'bg-green-500 text-white' :
+                  'bg-white/10 text-slate-500'
+      }`}>
+        {done ? '✓' : num}
+      </span>
+      {label}
+    </div>
+  );
+}
+
+// ─── Copy icon (2 overlapping squares) ───────────────────────────────────────
+function CopyIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+    </svg>
+  );
+}
 
 // ─── Draw canvas ─────────────────────────────────────────────────────────────
 function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, transform) {
@@ -32,12 +61,11 @@ function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, t
     ctx.save();
     ctx.strokeStyle = col;
     ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10); ctx.stroke();
-    // label bubble
+    ctx.beginPath(); ctx.moveTo(cx - 12, cy); ctx.lineTo(cx + 12, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy - 12); ctx.lineTo(cx, cy + 12); ctx.stroke();
     ctx.fillStyle = col;
     ctx.font = 'bold 11px sans-serif';
-    ctx.fillText(CALIB_LABELS[i], cx + 6, cy - 6);
+    ctx.fillText(CALIB_LABELS[i], cx + 7, cy - 7);
     ctx.restore();
   });
 
@@ -50,7 +78,6 @@ function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, t
       const isSel = selected?.seriesId === s.id && selected?.pointId === pt.id;
       const isHov = hovered?.seriesId === s.id && hovered?.pointId === pt.id;
       ctx.save();
-      // outer ring for selected
       if (isSel) {
         ctx.beginPath();
         ctx.arc(cx, cy, 10, 0, Math.PI * 2);
@@ -58,7 +85,6 @@ function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, t
         ctx.lineWidth = 2;
         ctx.stroke();
       }
-      // fill circle
       ctx.beginPath();
       ctx.arc(cx, cy, isSel ? 7 : isHov ? 6 : 5, 0, Math.PI * 2);
       ctx.fillStyle = s.color;
@@ -66,7 +92,6 @@ function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, t
       ctx.strokeStyle = '#000000aa';
       ctx.lineWidth = 0.8;
       ctx.stroke();
-      // number label
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${isSel ? 9 : 8}px sans-serif`;
       ctx.textAlign = 'center';
@@ -79,38 +104,36 @@ function drawCanvas(canvas, img, calibPixels, series, selected, hovered, mode, t
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function PlotExtractorCard() {
-  // image
-  const [img, setImg] = useState(null);
-  const [imgSize, setImgSize] = useState({ w: 1, h: 1 });
-
-  // mode: 'upload' | 'calibrate' | 'collect'
-  const [mode, setMode] = useState('upload');
+  const [img, setImg]           = useState(null);
+  const [imgSize, setImgSize]   = useState({ w: 1, h: 1 });
+  const [mode, setMode]         = useState('upload');
 
   // calibration
-  const [calibStep, setCalibStep]     = useState(0);          // 0-3
+  const [calibStep, setCalibStep]     = useState(0);
   const [calibPixels, setCalibPixels] = useState(INIT_CALIB_PIXELS);
   const [calibValues, setCalibValues] = useState(INIT_CALIB_VALUES);
   const [axisConfig, setAxisConfig]   = useState({ xType: 'linear', yType: 'linear' });
 
-  // series
+  // series & points
   const [series, setSeries]           = useState([mkSeries('Series 1', SERIES_COLORS[0])]);
-  const [activeSeriesId, setActiveSId] = useState(null); // set on first collect
-
-  // selection & drag
-  const [selected, setSelected]       = useState(null); // {seriesId, pointId}
+  const [activeSeriesId, setActiveSId] = useState(null);
+  const [selected, setSelected]       = useState(null);
   const [editVal, setEditVal]         = useState({ x: '', y: '' });
   const [hovered, setHovered]         = useState(null);
-  const dragRef = useRef(null); // { seriesId, pointId }
+  const [copyDone, setCopyDone]       = useState(false);
 
-  // canvas
-  const canvasRef  = useRef(null);
+  // canvas refs
+  const canvasRef    = useRef(null);
   const containerRef = useRef(null);
   const transformRef = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
+  const dragRef      = useRef(null);
 
-  // ─── Calibration completeness ─────────────────────────────────────────────
+  // ─── Derived ─────────────────────────────────────────────────────────────
   const calibComplete = calibPixels.every(Boolean) &&
     calibValues.x1 !== '' && calibValues.x2 !== '' &&
     calibValues.y1 !== '' && calibValues.y2 !== '';
+
+  const totalPoints = series.reduce((acc, s) => acc + s.points.length, 0);
 
   const buildCalib = useCallback(() => ({
     x1: { ...calibPixels[0], val: Number(calibValues.x1) },
@@ -121,7 +144,7 @@ export default function PlotExtractorCard() {
     yType: axisConfig.yType,
   }), [calibPixels, calibValues, axisConfig]);
 
-  // ─── Canvas resize & redraw ───────────────────────────────────────────────
+  // ─── Canvas draw ──────────────────────────────────────────────────────────
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !img) return;
@@ -142,8 +165,7 @@ export default function PlotExtractorCard() {
   }, [redraw]);
 
   // ─── Image upload ─────────────────────────────────────────────────────────
-  function handleFileChange(e) {
-    const file = e.target.files?.[0];
+  function loadImage(file) {
     if (!file) return;
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -161,35 +183,26 @@ export default function PlotExtractorCard() {
     image.src = url;
   }
 
-  function handleDrop(e) {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFileChange({ target: { files: [file] } });
-  }
-
   // ─── Hit test ─────────────────────────────────────────────────────────────
   function hitTest(cx, cy) {
     const t = transformRef.current;
-    const R = 10;
     for (let si = series.length - 1; si >= 0; si--) {
       const s = series[si];
       for (let pi = s.points.length - 1; pi >= 0; pi--) {
         const pt = s.points[pi];
         const c = imgToCanvas(pt.px, pt.py, t);
-        if (Math.hypot(cx - c.cx, cy - c.cy) <= R) {
-          return { seriesId: s.id, pointId: pt.id };
-        }
+        if (Math.hypot(cx - c.cx, cy - c.cy) <= 10) return { seriesId: s.id, pointId: pt.id };
       }
     }
     return null;
   }
 
-  // ─── Canvas mouse handlers ────────────────────────────────────────────────
   function getCanvasXY(e) {
     const rect = canvasRef.current.getBoundingClientRect();
     return { cx: e.clientX - rect.left, cy: e.clientY - rect.top };
   }
 
+  // ─── Canvas mouse handlers ────────────────────────────────────────────────
   function handleCanvasMouseDown(e) {
     if (!img) return;
     const { cx, cy } = getCanvasXY(e);
@@ -207,7 +220,6 @@ export default function PlotExtractorCard() {
     if (mode === 'collect') {
       const hit = hitTest(cx, cy);
       if (hit) {
-        // select existing point
         setSelected(hit);
         const s = series.find(s => s.id === hit.seriesId);
         const pt = s?.points.find(p => p.id === hit.pointId);
@@ -215,9 +227,7 @@ export default function PlotExtractorCard() {
         dragRef.current = hit;
         return;
       }
-      // deselect if clicking empty area and not dragging
       setSelected(null);
-      // add point to active series
       const { px, py } = canvasToImg(cx, cy, t);
       const calib = buildCalib();
       const { x, y } = pixelToData(px, py, calib);
@@ -235,7 +245,6 @@ export default function PlotExtractorCard() {
     const { cx, cy } = getCanvasXY(e);
     const t = transformRef.current;
 
-    // drag
     if (dragRef.current && e.buttons === 1) {
       const { seriesId, pointId } = dragRef.current;
       const { px, py } = canvasToImg(cx, cy, t);
@@ -251,7 +260,6 @@ export default function PlotExtractorCard() {
       return;
     }
 
-    // hover
     if (mode === 'collect') {
       const hit = hitTest(cx, cy);
       setHovered(hit);
@@ -259,11 +267,9 @@ export default function PlotExtractorCard() {
     }
   }
 
-  function handleCanvasMouseUp() {
-    dragRef.current = null;
-  }
+  function handleCanvasMouseUp() { dragRef.current = null; }
 
-  // ─── Delete selected point ────────────────────────────────────────────────
+  // ─── Delete selected ──────────────────────────────────────────────────────
   function deleteSelected() {
     if (!selected) return;
     setSeries(prev => prev.map(s =>
@@ -274,11 +280,9 @@ export default function PlotExtractorCard() {
     setSelected(null);
   }
 
-  // keyboard Delete key
   useEffect(() => {
     function onKey(e) {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected && mode === 'collect') {
-        // only if not focused on an input
         if (document.activeElement.tagName !== 'INPUT') deleteSelected();
       }
     }
@@ -286,7 +290,7 @@ export default function PlotExtractorCard() {
     return () => window.removeEventListener('keydown', onKey);
   }, [selected, mode, series]);
 
-  // ─── Apply manual edit ────────────────────────────────────────────────────
+  // ─── Edit apply ───────────────────────────────────────────────────────────
   function applyEdit() {
     if (!selected) return;
     const nx = Number(editVal.x), ny = Number(editVal.y);
@@ -294,14 +298,12 @@ export default function PlotExtractorCard() {
     setSeries(prev => prev.map(s =>
       s.id === selected.seriesId ? {
         ...s,
-        points: s.points.map(p =>
-          p.id === selected.pointId ? { ...p, x: nx, y: ny } : p
-        ),
+        points: s.points.map(p => p.id === selected.pointId ? { ...p, x: nx, y: ny } : p),
       } : s
     ));
   }
 
-  // ─── Re-calibrate ─────────────────────────────────────────────────────────
+  // ─── Calibration controls ─────────────────────────────────────────────────
   function startRecalibrate(fullReset) {
     setMode('calibrate');
     setCalibStep(0);
@@ -314,9 +316,19 @@ export default function PlotExtractorCard() {
     }
   }
 
+  // Reset: keep image, wipe calibration + all data
+  function resetAll() {
+    setMode('calibrate');
+    setCalibStep(0);
+    setCalibPixels(INIT_CALIB_PIXELS);
+    setCalibValues(INIT_CALIB_VALUES);
+    setSeries([mkSeries('Series 1', SERIES_COLORS[0])]);
+    setActiveSId(null);
+    setSelected(null);
+  }
+
   function finishCalibration() {
     if (!calibComplete) return;
-    // recompute existing points with new calibration
     const calib = buildCalib();
     setSeries(prev => recomputeAllSeries(prev, calib));
     setMode('collect');
@@ -354,10 +366,16 @@ export default function PlotExtractorCard() {
 
   function copyToClipboard() {
     const csv = seriesToCSV(series);
-    navigator.clipboard.writeText(csv).catch(() => {});
+    navigator.clipboard.writeText(csv).then(() => {
+      setCopyDone(true);
+      setTimeout(() => setCopyDone(false), 2000);
+    }).catch(() => {});
   }
 
-  const totalPoints = series.reduce((acc, s) => acc + s.points.length, 0);
+  // ─── Step logic ───────────────────────────────────────────────────────────
+  const step1Done = !!img;
+  const step2Done = mode === 'collect';
+  const step3Active = mode === 'collect';
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
@@ -368,9 +386,15 @@ export default function PlotExtractorCard() {
           Plot Data Extractor
         </h1>
         <p className="mt-1 text-sm text-slate-300">
-          Upload a chart image, calibrate axes, then click to extract X–Y data points.
-          Supports linear and log scales with multiple data series.
+          Extract data points from linear or log scale plots.
         </p>
+      </div>
+
+      {/* Step indicators */}
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <StepBadge num="1" label="Upload Plot Image"             active={!step1Done} done={step1Done} />
+        <StepBadge num="2" label="Calibrate Axes"                active={step1Done && !step2Done} done={step2Done} />
+        <StepBadge num="3" label="Add Series & Mark Data Points" active={step3Active} done={false} />
       </div>
 
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -378,13 +402,13 @@ export default function PlotExtractorCard() {
         {/* ── LEFT: Canvas ── */}
         <div className="flex flex-col gap-2 lg:flex-1">
 
-          {/* Status bar */}
+          {/* Canvas status bar */}
           {mode !== 'upload' && (
             <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200">
               <span className={`h-2 w-2 rounded-full ${mode === 'calibrate' ? 'bg-yellow-400' : 'bg-green-400'}`} />
               {mode === 'calibrate'
-                ? `Calibrate — Step ${calibStep + 1}/4: ${CALIB_PROMPTS[calibStep]}`
-                : `Collect Mode — click canvas to add point to active series`}
+                ? `Step 2 — ${CALIB_PROMPTS[calibStep]} (${calibStep + 1}/4)`
+                : `Step 3 — Click canvas to add a point to the active series`}
             </div>
           )}
 
@@ -392,24 +416,26 @@ export default function PlotExtractorCard() {
           <div
             ref={containerRef}
             className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900"
-            style={{ minHeight: 420, height: mode === 'upload' ? 'auto' : undefined }}
-            onDrop={handleDrop}
+            style={{ minHeight: 420 }}
+            onDrop={e => { e.preventDefault(); loadImage(e.dataTransfer.files?.[0]); }}
             onDragOver={e => e.preventDefault()}
           >
             {mode === 'upload' ? (
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 p-12 text-slate-400 hover:text-slate-200 transition-colors">
-                <svg className="h-14 w-14 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 p-12 text-slate-400 hover:text-slate-200 transition-colors" style={{ minHeight: 420 }}>
+                <svg className="h-14 w-14 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="text-base font-semibold">Drop image here or click to upload</span>
-                <span className="text-xs opacity-60">PNG, JPG, BMP, SVG</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                <div className="text-center">
+                  <div className="text-base font-semibold">Step 1 — Upload your plot image</div>
+                  <div className="mt-1 text-xs opacity-60">Drop here or click to browse · PNG, JPG, BMP</div>
+                </div>
+                <input type="file" accept="image/*" className="hidden" onChange={e => loadImage(e.target.files?.[0])} />
               </label>
             ) : (
               <canvas
                 ref={canvasRef}
                 className="block w-full"
-                style={{ cursor: mode === 'calibrate' ? 'crosshair' : 'crosshair', height: 480 }}
+                style={{ height: 480, cursor: 'crosshair' }}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
@@ -418,11 +444,11 @@ export default function PlotExtractorCard() {
             )}
           </div>
 
-          {/* Re-upload button */}
+          {/* Load new image */}
           {mode !== 'upload' && (
             <label className="cursor-pointer self-start rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 transition">
               ↑ Load new image
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              <input type="file" accept="image/*" className="hidden" onChange={e => loadImage(e.target.files?.[0])} />
             </label>
           )}
         </div>
@@ -452,13 +478,17 @@ export default function PlotExtractorCard() {
             </div>
           )}
 
-          {/* ─ Calibration panel ─ */}
+          {/* ─ Step 2: Calibration panel ─ */}
           {mode === 'calibrate' && (
             <div className="rounded-2xl border border-yellow-400/20 bg-yellow-500/5 p-3">
-              <div className="mb-2 text-xs font-bold uppercase tracking-widest text-yellow-300">Calibration</div>
+              <div className="mb-1 text-xs font-bold uppercase tracking-widest text-yellow-300">Step 2 — Calibrate Axes</div>
+              <p className="mb-3 text-[11px] text-slate-400 leading-relaxed">
+                Click each reference point on the plot, then enter its known value.<br/>
+                <span className="text-yellow-200/70">Tip: Use X-min, X-max, Y-min, Y-max for best accuracy.</span>
+              </p>
               <div className="flex flex-col gap-2">
                 {CALIB_LABELS.map((lbl, i) => {
-                  const valKey = lbl.toLowerCase().replace('-', '');
+                  const valKey = lbl.toLowerCase();
                   const done = !!calibPixels[i];
                   return (
                     <div key={lbl} className="flex items-center gap-2">
@@ -477,7 +507,7 @@ export default function PlotExtractorCard() {
                         />
                       ) : (
                         <span className={`text-xs ${i === calibStep ? 'text-yellow-200 font-semibold' : 'text-slate-500'}`}>
-                          {i === calibStep ? '← click on canvas' : 'pending'}
+                          {i === calibStep ? '← click on the plot' : 'waiting…'}
                         </span>
                       )}
                       {done && (
@@ -488,7 +518,7 @@ export default function PlotExtractorCard() {
                             setCalibPixels(next);
                             setCalibStep(i);
                           }}
-                          title="Reset this point"
+                          title="Re-pick this point"
                         >✕</button>
                       )}
                     </div>
@@ -504,23 +534,18 @@ export default function PlotExtractorCard() {
                 disabled={!calibComplete}
                 onClick={finishCalibration}
               >
-                {calibComplete ? '✓ Done — Start Collecting' : 'Complete all 4 points above'}
+                {calibComplete ? '✓ Calibration Done — Go to Step 3' : 'Pick & enter all 4 points to continue'}
               </button>
             </div>
           )}
 
-          {/* ─ Collect-mode controls ─ */}
+          {/* ─ Step 3: Collect mode ─ */}
           {mode === 'collect' && (
             <>
               {/* Series manager */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">Series</span>
-                  <button
-                    className="rounded-lg bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300 hover:bg-cyan-500/40"
-                    onClick={addSeries}
-                  >+ Add</button>
-                </div>
+                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-cyan-300">Step 3 — Series</div>
+                <p className="mb-2 text-[11px] text-slate-400">Select or add a series, then click the plot to mark data points. Drag any marker to reposition.</p>
                 <div className="flex flex-col gap-1.5">
                   {series.map(s => (
                     <div
@@ -548,6 +573,10 @@ export default function PlotExtractorCard() {
                     </div>
                   ))}
                 </div>
+                <button
+                  className="mt-2 w-full rounded-xl bg-cyan-500/15 py-1.5 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/30"
+                  onClick={addSeries}
+                >+ Add Series</button>
               </div>
 
               {/* Selected point editor */}
@@ -580,23 +609,27 @@ export default function PlotExtractorCard() {
                 );
               })()}
 
-              {/* Re-calibrate */}
+              {/* Re-calibrate / Reset */}
               <div className="flex gap-2">
                 <button
                   className="flex-1 rounded-xl border border-yellow-400/20 bg-yellow-500/10 py-1.5 text-[11px] font-semibold text-yellow-300 hover:bg-yellow-500/20"
                   onClick={() => startRecalibrate(false)}
+                  title="Keeps data points, re-runs calibration"
                 >↺ Re-calibrate</button>
                 <button
-                  className="flex-1 rounded-xl border border-red-400/20 bg-red-500/10 py-1.5 text-[11px] font-semibold text-red-300 hover:bg-red-500/20"
-                  onClick={() => startRecalibrate(true)}
-                >⊗ Full Reset</button>
+                  className="flex-1 rounded-xl border border-orange-400/20 bg-orange-500/10 py-1.5 text-[11px] font-semibold text-orange-300 hover:bg-orange-500/20"
+                  onClick={resetAll}
+                  title="Wipes calibration and all data points — keeps image"
+                >⊗ Reset</button>
               </div>
 
-              {/* Data table */}
+              {/* Data table + export */}
               {totalPoints > 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">Extracted Points ({totalPoints})</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">
+                      Extracted Points ({totalPoints})
+                    </span>
                   </div>
                   <div className="max-h-48 overflow-y-auto">
                     <table className="w-full text-[11px]">
@@ -606,7 +639,7 @@ export default function PlotExtractorCard() {
                           <th className="pb-1 text-left font-semibold">Series</th>
                           <th className="pb-1 text-right font-semibold">X</th>
                           <th className="pb-1 text-right font-semibold">Y</th>
-                          <th className="pb-1 text-right font-semibold"></th>
+                          <th className="pb-1" />
                         </tr>
                       </thead>
                       <tbody>
@@ -650,12 +683,20 @@ export default function PlotExtractorCard() {
                       </tbody>
                     </table>
                   </div>
-                  {/* Export */}
+
+                  {/* Export buttons */}
                   <div className="mt-3 flex gap-2">
-                    <button className="flex-1 primary-action-button py-2 text-xs" onClick={copyToClipboard}>
-                      📋 Copy CSV
+                    <button
+                      className="flex-1 primary-action-button py-2 text-xs gap-1.5"
+                      onClick={copyToClipboard}
+                    >
+                      <CopyIcon />
+                      {copyDone ? 'Copied!' : 'Copy Data'}
                     </button>
-                    <button className="flex-1 primary-action-button py-2 text-xs" onClick={exportCSV}>
+                    <button
+                      className="flex-1 primary-action-button py-2 text-xs"
+                      onClick={exportCSV}
+                    >
                       ↓ Download CSV
                     </button>
                   </div>
