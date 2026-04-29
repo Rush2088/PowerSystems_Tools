@@ -289,12 +289,6 @@ export default function Home() {
           <h1 className="text-base font-extrabold leading-tight text-white">Plot Data Extractor</h1>
           <p className="text-[11px] text-slate-400">Extract data points from linear or log scale plots.</p>
         </div>
-        {step > 1 && (
-          <label className="ml-auto cursor-pointer rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 transition shrink-0">
-            ↑ New Image
-            <input type="file" accept="image/*" className="hidden" onChange={e => handleImageLoad(e.target.files?.[0])} />
-          </label>
-        )}
       </div>
 
       {/* Step progress */}
@@ -327,6 +321,7 @@ export default function Home() {
             onResetPoint={resetCalibPoint}
             onResetAll={resetAllCalib}
             onFinish={finishCalibration}
+            onNewImage={handleImageLoad}
           />
         )}
 
@@ -363,6 +358,7 @@ export default function Home() {
             onReset={resetAll}
             onExportCSV={exportCSV}
             onCopy={copyToClipboard}
+            onNewImage={handleImageLoad}
           />
         )}
       </div>

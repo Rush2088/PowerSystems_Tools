@@ -5,7 +5,7 @@ export default function Step2Calibrate({
   img, imgSize,
   calibStep, calibPixels, calibValues, axisConfig, calibComplete,
   onCanvasClick, onValuesChange, onAxisChange,
-  onResetPoint, onResetAll, onFinish,
+  onResetPoint, onResetAll, onFinish, onNewImage,
 }) {
   const nextPickIdx = calibPixels.findIndex(p => !p);
 
@@ -141,6 +141,10 @@ export default function Step2Calibrate({
                 onClick={onFinish}
               >{calibComplete ? '✓ Done → Step 3' : 'Complete 4 points'}</button>
             </div>
+            <label className="mt-1.5 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/5 py-2 text-[10px] font-semibold text-slate-400 hover:bg-white/10 transition">
+              ↑ New Image
+              <input type="file" accept="image/*" className="hidden" onChange={e => onNewImage?.(e.target.files?.[0])} />
+            </label>
           </div>
         </div>
       </div>
