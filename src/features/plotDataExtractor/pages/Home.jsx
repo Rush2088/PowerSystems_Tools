@@ -116,6 +116,7 @@ export default function Home() {
     setCalibPixels(INIT_CALIB_PIXELS);
     setCalibValues(INIT_CALIB_VALUES);
     setCalibStep(0);
+    setMaxStep(prev => Math.min(prev, 2)); // block Step 3 until re-calibrated
   }
 
   function finishCalibration() {
