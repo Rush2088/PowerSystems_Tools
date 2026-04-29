@@ -23,6 +23,7 @@ export default function Home() {
   const [img, setImg]         = useState(null);
   const [imgSize, setImgSize] = useState({ w: 1, h: 1 });
   const [step, setStep]       = useState(1);
+  const [maxStep, setMaxStep] = useState(1); // highest step ever reached this session
 
   // ── Calibration ──
   const [calibStep, setCalibStep]     = useState(0);
@@ -59,6 +60,20 @@ export default function Home() {
 
   const totalPoints = series.reduce((acc, s) => acc + s.points.length, 0);
 
+  // ── Step navigation ───────────────────────────────────────────────────────
+  // canGoTo[i] = whether step i+1 is reachable right now
+  const canGoTo = [
+    true,              // Step 1 — always
+    !!img,             // Step 2 — need an image
+    maxStep >= 3,      // Step 3 — need to have finished calibration at least once
+  ];
+
+  function handleStepClick(num) {
+    if (num === step) return;
+    if (!canGoTo[num - 1]) return;
+    setStep(num);
+  }
+
   // ── Step 1: Image load ────────────────────────────────────────────────────
   function handleImageLoad(file) {
     if (!file) return;
@@ -68,6 +83,7 @@ export default function Home() {
       setImg(image);
       setImgSize({ w: image.naturalWidth, h: image.naturalHeight });
       setStep(2);
+      setMaxStep(prev => Math.max(prev, 2));
       setCalibStep(0);
       setCalibPixels(INIT_CALIB_PIXELS);
       setCalibValues(INIT_CALIB_VALUES);
@@ -107,6 +123,7 @@ export default function Home() {
     const calib = buildCalib();
     setSeries(prev => recomputeAllSeries(prev, calib));
     setStep(3);
+    setMaxStep(3);
     setActiveSId(id => id ?? series[0]?.id);
   }
 
@@ -278,7 +295,13 @@ export default function Home() {
 
       {/* Step progress */}
       <div className="mx-auto mb-3 max-w-[1500px]">
-        <StepNav step={step} step1Done={!!img} step2Done={step === 3} />
+        <StepNav
+          step={step}
+          step1Done={!!img}
+          step2Done={maxStep >= 3}
+          canGoTo={canGoTo}
+          onStepClick={handleStepClick}
+        />
       </div>
 
       {/* Step content */}
