@@ -138,8 +138,8 @@ export default function PlotCanvas({
   }, [redraw]);
 
   // ─── Snap helper ───────────────────────────────────────────────────────────
-  // When snap is ON, cursor always locks to the nearest detected edge pixel
-  // (no radius limit) so it rides the curve continuously.
+  // BFS distance transform makes this an O(1) array lookup — cursor always
+  // rides to the globally nearest detected edge, no radius limit needed.
   function computeSnap(cx, cy) {
     if (!snapEnabled || !spatialIndex || mode !== 'collect') {
       snapRef.current = null;
@@ -148,8 +148,7 @@ export default function PlotCanvas({
     }
     const t = transformRef.current;
     const { px: imgPx, py: imgPy } = canvasToImg(cx, cy, t);
-    // Infinity radius — always find the nearest edge, no cutoff
-    const snapped = snapToEdge(imgPx, imgPy, spatialIndex, Infinity);
+    const snapped = snapToEdge(imgPx, imgPy, spatialIndex); // O(1) lookup
     if (snapped) {
       const { cx: scx, cy: scy } = imgToCanvas(snapped[0], snapped[1], t);
       snapRef.current = { px: snapped[0], py: snapped[1] };
