@@ -78,7 +78,7 @@ export default function Step3Collect({
               <span className="rounded-full border border-purple-400/40 px-1.5 py-0.5 text-[8px] font-bold text-purple-400">BETA</span>
             </div>
             <p className="mb-2.5 text-[10px] leading-relaxed text-slate-400">
-              Detects curve edges and polygon boundaries. Cursor snaps to the nearest detected edge for precise point picking.
+              Detects curve edges and polygon boundaries. With Snap ON, the cursor locks to and rides along the nearest detected edge — click to place the point exactly on the curve.
             </p>
             <button
               className={`w-full rounded-xl py-2 text-[10px] font-bold transition ${

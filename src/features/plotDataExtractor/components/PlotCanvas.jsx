@@ -138,16 +138,18 @@ export default function PlotCanvas({
   }, [redraw]);
 
   // ─── Snap helper ───────────────────────────────────────────────────────────
+  // When snap is ON, cursor always locks to the nearest detected edge pixel
+  // (no radius limit) so it rides the curve continuously.
   function computeSnap(cx, cy) {
     if (!snapEnabled || !spatialIndex || mode !== 'collect') {
       snapRef.current = null;
       if (snapRingRef.current) snapRingRef.current.style.display = 'none';
-      return { cx, cy }; // no snap
+      return { cx, cy };
     }
     const t = transformRef.current;
     const { px: imgPx, py: imgPy } = canvasToImg(cx, cy, t);
-    const snapRadiusImg = SNAP_RADIUS / t.scale;
-    const snapped = snapToEdge(imgPx, imgPy, spatialIndex, snapRadiusImg);
+    // Infinity radius — always find the nearest edge, no cutoff
+    const snapped = snapToEdge(imgPx, imgPy, spatialIndex, Infinity);
     if (snapped) {
       const { cx: scx, cy: scy } = imgToCanvas(snapped[0], snapped[1], t);
       snapRef.current = { px: snapped[0], py: snapped[1] };
