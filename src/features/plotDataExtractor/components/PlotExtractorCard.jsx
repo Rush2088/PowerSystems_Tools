@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   pixelToData, recomputeAllSeries, getTransform,
   imgToCanvas, canvasToImg,
-  seriesToCSV, SERIES_COLORS, CALIB_LABELS, CALIB_COLORS, CALIB_PROMPTS,
+  seriesToCSV, SERIES_COLORS, CALIB_LABELS, CALIB_COLORS,
 } from '../utils/plotExtractorCalc';
 
 // ─── tiny uid ────────────────────────────────────────────────────────────────
@@ -14,27 +14,27 @@ const mkSeries = (name, color) => ({ id: uid(), name, color, points: [] });
 const INIT_CALIB_VALUES = { x1: '', x2: '', y1: '', y2: '' };
 const INIT_CALIB_PIXELS = [null, null, null, null];
 
-// ─── Step indicator component ─────────────────────────────────────────────────
+// ─── Step badge ───────────────────────────────────────────────────────────────
 function StepBadge({ num, label, active, done }) {
   return (
     <div className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition ${
-      active  ? 'bg-cyan-500/20 border border-cyan-400/40 text-cyan-200' :
-      done    ? 'bg-green-500/10 border border-green-400/20 text-green-300' :
-                'bg-white/5 border border-white/10 text-slate-500'
+      active ? 'bg-cyan-500/20 border border-cyan-400/40 text-cyan-200' :
+      done   ? 'bg-green-500/10 border border-green-400/20 text-green-300' :
+               'bg-white/5 border border-white/10 text-slate-500'
     }`}>
       <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-        active  ? 'bg-cyan-500 text-white' :
-        done    ? 'bg-green-500 text-white' :
-                  'bg-white/10 text-slate-500'
+        active ? 'bg-cyan-500 text-white' :
+        done   ? 'bg-green-500 text-white' :
+                 'bg-white/10 text-slate-500'
       }`}>
         {done ? '✓' : num}
       </span>
-      {label}
+      <span><span className="opacity-60 mr-0.5">Step {num}:</span> {label}</span>
     </div>
   );
 }
 
-// ─── Copy icon (2 overlapping squares) ───────────────────────────────────────
+// ─── Copy icon ────────────────────────────────────────────────────────────────
 function CopyIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -108,7 +108,8 @@ export default function PlotExtractorCard() {
   const [imgSize, setImgSize]   = useState({ w: 1, h: 1 });
   const [mode, setMode]         = useState('upload');
 
-  // calibration
+  // calibration — pixels and values are tracked independently
+  // so value inputs are always visible and editable regardless of pixel state
   const [calibStep, setCalibStep]     = useState(0);
   const [calibPixels, setCalibPixels] = useState(INIT_CALIB_PIXELS);
   const [calibValues, setCalibValues] = useState(INIT_CALIB_VALUES);
@@ -129,9 +130,11 @@ export default function PlotExtractorCard() {
   const dragRef      = useRef(null);
 
   // ─── Derived ─────────────────────────────────────────────────────────────
+  const valKeys = ['x1', 'x2', 'y1', 'y2'];
+
+  // Calibration is complete when all 4 pixels are picked AND all 4 values are non-empty numbers
   const calibComplete = calibPixels.every(Boolean) &&
-    calibValues.x1 !== '' && calibValues.x2 !== '' &&
-    calibValues.y1 !== '' && calibValues.y2 !== '';
+    valKeys.every(k => calibValues[k] !== '' && isFinite(Number(calibValues[k])));
 
   const totalPoints = series.reduce((acc, s) => acc + s.points.length, 0);
 
@@ -213,7 +216,10 @@ export default function PlotExtractorCard() {
       const next = [...calibPixels];
       next[calibStep] = { px, py };
       setCalibPixels(next);
-      if (calibStep < 3) setCalibStep(calibStep + 1);
+      // advance to next un-picked point
+      let nextStep = calibStep + 1;
+      while (nextStep < 4 && next[nextStep]) nextStep++;
+      if (nextStep < 4) setCalibStep(nextStep);
       return;
     }
 
@@ -303,12 +309,23 @@ export default function PlotExtractorCard() {
     ));
   }
 
-  // ─── Calibration controls ─────────────────────────────────────────────────
-  function startRecalibrate(fullReset) {
-    setMode('calibrate');
-    setCalibStep(0);
+  // ─── Calibration helpers ──────────────────────────────────────────────────
+  function resetCalibPoint(i) {
+    const next = [...calibPixels];
+    next[i] = null;
+    setCalibPixels(next);
+    setCalibStep(i); // focus canvas click on this slot
+  }
+
+  function resetAllCalib() {
     setCalibPixels(INIT_CALIB_PIXELS);
     setCalibValues(INIT_CALIB_VALUES);
+    setCalibStep(0);
+  }
+
+  function startRecalibrate(fullReset) {
+    setMode('calibrate');
+    resetAllCalib();
     setSelected(null);
     if (fullReset) {
       setSeries([mkSeries('Series 1', SERIES_COLORS[0])]);
@@ -316,12 +333,10 @@ export default function PlotExtractorCard() {
     }
   }
 
-  // Reset: keep image, wipe calibration + all data
+  // Reset: keep image, wipe everything else
   function resetAll() {
     setMode('calibrate');
-    setCalibStep(0);
-    setCalibPixels(INIT_CALIB_PIXELS);
-    setCalibValues(INIT_CALIB_VALUES);
+    resetAllCalib();
     setSeries([mkSeries('Series 1', SERIES_COLORS[0])]);
     setActiveSId(null);
     setSelected(null);
@@ -372,61 +387,66 @@ export default function PlotExtractorCard() {
     }).catch(() => {});
   }
 
-  // ─── Step logic ───────────────────────────────────────────────────────────
-  const step1Done = !!img;
-  const step2Done = mode === 'collect';
+  // ─── Step states ─────────────────────────────────────────────────────────
+  const step1Done  = !!img;
+  const step2Done  = mode === 'collect';
   const step3Active = mode === 'collect';
+
+  // Which calib slot is awaiting a canvas click (first un-picked slot)
+  const nextPickIdx = calibPixels.findIndex(p => !p);
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <section className="glass-card p-4 sm:p-5">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[2rem]">
+      <div className="mb-3">
+        <h1 className="text-lg font-extrabold tracking-tight text-white sm:text-xl">
           Plot Data Extractor
         </h1>
-        <p className="mt-1 text-sm text-slate-300">
+        <p className="mt-0.5 text-xs text-slate-400">
           Extract data points from linear or log scale plots.
         </p>
       </div>
 
-      {/* Step indicators */}
-      <div className="mb-4 grid grid-cols-3 gap-2">
-        <StepBadge num="1" label="Upload Plot Image"             active={!step1Done} done={step1Done} />
+      {/* Step progress badges */}
+      <div className="mb-3 grid grid-cols-3 gap-2">
+        <StepBadge num="1" label="Upload Plot Image"             active={!step1Done}            done={step1Done} />
         <StepBadge num="2" label="Calibrate Axes"                active={step1Done && !step2Done} done={step2Done} />
-        <StepBadge num="3" label="Add Series & Mark Data Points" active={step3Active} done={false} />
+        <StepBadge num="3" label="Add Series & Mark Data Points" active={step3Active}            done={false} />
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row">
+      <div className="flex flex-col gap-3 lg:flex-row">
 
         {/* ── LEFT: Canvas ── */}
-        <div className="flex flex-col gap-2 lg:flex-1">
+        <div className="flex flex-col gap-2 lg:flex-[3]">
 
-          {/* Canvas status bar */}
+          {/* Status bar */}
           {mode !== 'upload' && (
             <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200">
               <span className={`h-2 w-2 rounded-full ${mode === 'calibrate' ? 'bg-yellow-400' : 'bg-green-400'}`} />
               {mode === 'calibrate'
-                ? `Step 2 — ${CALIB_PROMPTS[calibStep]} (${calibStep + 1}/4)`
-                : `Step 3 — Click canvas to add a point to the active series`}
+                ? nextPickIdx >= 0
+                  ? `Step 2: Calibrate — click the plot to set ${CALIB_LABELS[nextPickIdx]} position`
+                  : 'Step 2: Calibrate — all positions picked, enter values on the right'
+                : 'Step 3: Click the plot to add a data point to the active series'}
             </div>
           )}
 
-          {/* Canvas container */}
+          {/* Canvas / drop zone */}
           <div
             ref={containerRef}
             className="relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900"
-            style={{ minHeight: 420 }}
+            style={{ minHeight: 560 }}
             onDrop={e => { e.preventDefault(); loadImage(e.dataTransfer.files?.[0]); }}
             onDragOver={e => e.preventDefault()}
           >
             {mode === 'upload' ? (
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 p-12 text-slate-400 hover:text-slate-200 transition-colors" style={{ minHeight: 420 }}>
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 p-12 text-slate-400 hover:text-slate-200 transition-colors" style={{ minHeight: 560 }}>
                 <svg className="h-14 w-14 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <div className="text-center">
-                  <div className="text-base font-semibold">Step 1 — Upload your plot image</div>
+                  <div className="text-base font-semibold">Step 1: Upload your plot image</div>
                   <div className="mt-1 text-xs opacity-60">Drop here or click to browse · PNG, JPG, BMP</div>
                 </div>
                 <input type="file" accept="image/*" className="hidden" onChange={e => loadImage(e.target.files?.[0])} />
@@ -435,7 +455,7 @@ export default function PlotExtractorCard() {
               <canvas
                 ref={canvasRef}
                 className="block w-full"
-                style={{ height: 480, cursor: 'crosshair' }}
+                style={{ height: 600, cursor: 'crosshair' }}
                 onMouseDown={handleCanvasMouseDown}
                 onMouseMove={handleCanvasMouseMove}
                 onMouseUp={handleCanvasMouseUp}
@@ -454,9 +474,9 @@ export default function PlotExtractorCard() {
         </div>
 
         {/* ── RIGHT: Sidebar ── */}
-        <div className="flex flex-col gap-3 lg:w-72 xl:w-80">
+        <div className="flex flex-col gap-2 lg:w-60 xl:w-64">
 
-          {/* ─ Axis config ─ */}
+          {/* Axis scale selector */}
           {mode !== 'upload' && (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
               <div className="mb-2 text-xs font-bold uppercase tracking-widest text-cyan-300">Axis Scale</div>
@@ -478,74 +498,97 @@ export default function PlotExtractorCard() {
             </div>
           )}
 
-          {/* ─ Step 2: Calibration panel ─ */}
+          {/* ─── STEP 2: Calibration panel ─── */}
           {mode === 'calibrate' && (
             <div className="rounded-2xl border border-yellow-400/20 bg-yellow-500/5 p-3">
-              <div className="mb-1 text-xs font-bold uppercase tracking-widest text-yellow-300">Step 2 — Calibrate Axes</div>
+              <div className="mb-1 text-xs font-bold uppercase tracking-widest text-yellow-300">Step 2: Calibrate Axes</div>
               <p className="mb-3 text-[11px] text-slate-400 leading-relaxed">
-                Click each reference point on the plot, then enter its known value.<br/>
+                Click each point on the plot to lock its position, then enter its known value below.<br/>
                 <span className="text-yellow-200/70">Tip: Use X-min, X-max, Y-min, Y-max for best accuracy.</span>
               </p>
+
               <div className="flex flex-col gap-2">
                 {CALIB_LABELS.map((lbl, i) => {
-                  const valKey = lbl.toLowerCase();
-                  const done = !!calibPixels[i];
+                  const valKey = lbl.toLowerCase(); // x1, x2, y1, y2
+                  const pixelSet = !!calibPixels[i];
+                  const isNext  = !pixelSet && nextPickIdx === i; // this slot awaits canvas click
+
                   return (
-                    <div key={lbl} className="flex items-center gap-2">
-                      <span
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                        style={{ background: CALIB_COLORS[i] + '33', color: CALIB_COLORS[i], border: `1px solid ${CALIB_COLORS[i]}66` }}
-                      >
-                        {lbl}
-                      </span>
-                      {done ? (
-                        <input
-                          className="input-inline flex-1 text-xs"
-                          placeholder={`${lbl} value`}
-                          value={calibValues[valKey] ?? ''}
-                          onChange={e => setCalibValues(prev => ({ ...prev, [valKey]: e.target.value }))}
-                        />
-                      ) : (
-                        <span className={`text-xs ${i === calibStep ? 'text-yellow-200 font-semibold' : 'text-slate-500'}`}>
-                          {i === calibStep ? '← click on the plot' : 'waiting…'}
+                    <div
+                      key={lbl}
+                      className={`rounded-xl p-2 transition ${
+                        isNext ? 'ring-1 ring-yellow-400/40 bg-white/5' : 'bg-white/[0.03]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {/* Colour badge */}
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                          style={{ background: CALIB_COLORS[i] + '33', color: CALIB_COLORS[i], border: `1px solid ${CALIB_COLORS[i]}66` }}
+                        >
+                          {lbl}
                         </span>
-                      )}
-                      {done && (
-                        <button
-                          className="text-slate-500 hover:text-red-400 text-xs"
-                          onClick={() => {
-                            const next = [...calibPixels]; next[i] = null;
-                            setCalibPixels(next);
-                            setCalibStep(i);
-                          }}
-                          title="Re-pick this point"
-                        >✕</button>
-                      )}
+
+                        {/* Pixel status */}
+                        {pixelSet ? (
+                          <span className="flex-1 text-[11px] text-green-300 font-semibold">✓ Position locked</span>
+                        ) : (
+                          <span className={`flex-1 text-[11px] ${isNext ? 'text-yellow-200 font-semibold animate-pulse' : 'text-slate-500'}`}>
+                            {isNext ? '← click plot to set position' : 'waiting…'}
+                          </span>
+                        )}
+
+                        {/* Reset pixel button */}
+                        {pixelSet && (
+                          <button
+                            className="text-[10px] text-slate-500 hover:text-red-400 transition px-1"
+                            onClick={() => resetCalibPoint(i)}
+                            title="Re-pick position"
+                          >re-pick</button>
+                        )}
+                      </div>
+
+                      {/* Value input — ALWAYS visible so user can type at any time */}
+                      <input
+                        className={`input-inline w-full text-xs ${!pixelSet ? 'opacity-60' : ''}`}
+                        placeholder={`Enter ${lbl} value (e.g. ${lbl.startsWith('X') ? '0.01' : '100'})`}
+                        value={calibValues[valKey] ?? ''}
+                        onChange={e => setCalibValues(prev => ({ ...prev, [valKey]: e.target.value }))}
+                      />
                     </div>
                   );
                 })}
               </div>
-              <button
-                className={`mt-3 w-full rounded-xl py-2 text-xs font-bold transition ${
-                  calibComplete
-                    ? 'bg-cyan-500 text-white hover:bg-cyan-400'
-                    : 'bg-white/5 text-slate-500 cursor-not-allowed'
-                }`}
-                disabled={!calibComplete}
-                onClick={finishCalibration}
-              >
-                {calibComplete ? '✓ Calibration Done — Go to Step 3' : 'Pick & enter all 4 points to continue'}
-              </button>
+
+              {/* Action buttons */}
+              <div className="mt-3 flex gap-2">
+                <button
+                  className="flex-1 rounded-xl border border-white/10 bg-white/5 py-1.5 text-[11px] font-semibold text-slate-400 hover:bg-white/10 hover:text-slate-200 transition"
+                  onClick={resetAllCalib}
+                  title="Clear all calibration points and values"
+                >↺ Reset Calibration</button>
+                <button
+                  className={`flex-1 rounded-xl py-1.5 text-[11px] font-bold transition ${
+                    calibComplete
+                      ? 'bg-cyan-500 text-white hover:bg-cyan-400'
+                      : 'bg-white/5 text-slate-500 cursor-not-allowed'
+                  }`}
+                  disabled={!calibComplete}
+                  onClick={finishCalibration}
+                >
+                  {calibComplete ? '✓ Done → Step 3' : 'Complete all 4 to continue'}
+                </button>
+              </div>
             </div>
           )}
 
-          {/* ─ Step 3: Collect mode ─ */}
+          {/* ─── STEP 3: Collect mode ─── */}
           {mode === 'collect' && (
             <>
               {/* Series manager */}
               <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-cyan-300">Step 3 — Series</div>
-                <p className="mb-2 text-[11px] text-slate-400">Select or add a series, then click the plot to mark data points. Drag any marker to reposition.</p>
+                <div className="mb-1 text-xs font-bold uppercase tracking-widest text-cyan-300">Step 3: Series</div>
+                <p className="mb-2 text-[11px] text-slate-400">Select a series then click the plot to mark points. Drag any marker to reposition it.</p>
                 <div className="flex flex-col gap-1.5">
                   {series.map(s => (
                     <div
@@ -567,7 +610,6 @@ export default function PlotExtractorCard() {
                         <button
                           className="text-slate-600 hover:text-red-400 text-xs"
                           onClick={e => { e.stopPropagation(); deleteSeries(s.id); }}
-                          title="Delete series"
                         >✕</button>
                       )}
                     </div>
@@ -609,7 +651,7 @@ export default function PlotExtractorCard() {
                 );
               })()}
 
-              {/* Re-calibrate / Reset */}
+              {/* Re-calibrate / Reset buttons */}
               <div className="flex gap-2">
                 <button
                   className="flex-1 rounded-xl border border-yellow-400/20 bg-yellow-500/10 py-1.5 text-[11px] font-semibold text-yellow-300 hover:bg-yellow-500/20"
@@ -619,17 +661,15 @@ export default function PlotExtractorCard() {
                 <button
                   className="flex-1 rounded-xl border border-orange-400/20 bg-orange-500/10 py-1.5 text-[11px] font-semibold text-orange-300 hover:bg-orange-500/20"
                   onClick={resetAll}
-                  title="Wipes calibration and all data points — keeps image"
+                  title="Wipes calibration + all data points, keeps image"
                 >⊗ Reset</button>
               </div>
 
               {/* Data table + export */}
               {totalPoints > 0 && (
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-widest text-cyan-300">
-                      Extracted Points ({totalPoints})
-                    </span>
+                  <div className="mb-2 text-xs font-bold uppercase tracking-widest text-cyan-300">
+                    Extracted Points ({totalPoints})
                   </div>
                   <div className="max-h-48 overflow-y-auto">
                     <table className="w-full text-[11px]">
@@ -683,20 +723,12 @@ export default function PlotExtractorCard() {
                       </tbody>
                     </table>
                   </div>
-
-                  {/* Export buttons */}
                   <div className="mt-3 flex gap-2">
-                    <button
-                      className="flex-1 primary-action-button py-2 text-xs gap-1.5"
-                      onClick={copyToClipboard}
-                    >
+                    <button className="flex-1 primary-action-button py-2 text-xs gap-1.5" onClick={copyToClipboard}>
                       <CopyIcon />
                       {copyDone ? 'Copied!' : 'Copy Data'}
                     </button>
-                    <button
-                      className="flex-1 primary-action-button py-2 text-xs"
-                      onClick={exportCSV}
-                    >
+                    <button className="flex-1 primary-action-button py-2 text-xs" onClick={exportCSV}>
                       ↓ Download CSV
                     </button>
                   </div>
