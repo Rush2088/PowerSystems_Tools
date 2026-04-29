@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import PlotCanvas from './PlotCanvas';
-import { seriesToCSV } from '../utils/plotExtractorCalc';
 
 function CopyIcon() {
   return (
@@ -14,10 +13,12 @@ function CopyIcon() {
 export default function Step3Collect({
   img, imgSize, calibPixels,
   series, activeSeriesId, selected, hovered, editVal, totalPoints, copyDone,
+  spatialIndex, snapEnabled, isDetecting,
   onAddPoint, onSelectPoint, onDragPoint, onHoverChange,
   onEditValChange, onApplyEdit, onDeleteSelected,
   onSetActiveSeries, onAddSeries, onDeleteSeries, onRenameSeries,
   onDeletePoint,
+  onAutoDetect, onToggleSnap,
   onRecalibrate, onReset,
   onExportCSV, onCopy,
 }) {
@@ -32,7 +33,6 @@ export default function Step3Collect({
     return () => window.removeEventListener('keydown', onKey);
   }, [selected, onDeleteSelected]);
 
-  // Selected point details
   const selSeries = selected ? series.find(s => s.id === selected.seriesId) : null;
   const selPoint  = selSeries?.points.find(p => p.id === selected?.pointId);
 
@@ -41,12 +41,14 @@ export default function Step3Collect({
       {/* Status bar */}
       <div className="mb-3 flex items-center gap-2 rounded-xl border border-green-400/20 bg-green-500/5 px-3 py-2 text-xs font-semibold text-green-200">
         <span className="h-2 w-2 rounded-full bg-green-400 shrink-0" />
-        Click the plot to add a point to the active series · Click an existing marker to select/drag it
+        {snapEnabled
+          ? '🎯 Snap ON — cursor locks to detected curve. Click to place point.'
+          : 'Click the plot to add a point to the active series · Click an existing marker to select/drag it'}
       </div>
 
       <div className="flex gap-3">
 
-        {/* Canvas — no calibration markers shown here */}
+        {/* Canvas */}
         <div className="flex-1" style={{ minHeight: 620 }}>
           <PlotCanvas
             img={img}
@@ -57,6 +59,8 @@ export default function Step3Collect({
             hovered={hovered}
             showCalibMarkers={false}
             mode="collect"
+            spatialIndex={spatialIndex}
+            snapEnabled={snapEnabled}
             onCanvasClick={onAddPoint}
             onPointMouseDown={onSelectPoint}
             onDrag={onDragPoint}
@@ -66,6 +70,46 @@ export default function Step3Collect({
 
         {/* Sidebar */}
         <div className="flex w-60 shrink-0 flex-col gap-2">
+
+          {/* Auto Detect panel */}
+          <div className="rounded-2xl border border-purple-400/20 bg-purple-500/5 p-3">
+            <div className="mb-1 flex items-center gap-1.5">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-purple-300">Auto Detect</div>
+              <span className="rounded-full border border-purple-400/40 px-1.5 py-0.5 text-[8px] font-bold text-purple-400">BETA</span>
+            </div>
+            <p className="mb-2.5 text-[10px] leading-relaxed text-slate-400">
+              Detects curve edges and polygon boundaries. Cursor snaps to the nearest detected edge for precise point picking.
+            </p>
+            <button
+              className={`w-full rounded-xl py-2 text-[10px] font-bold transition ${
+                isDetecting
+                  ? 'bg-purple-500/20 text-purple-400 cursor-wait'
+                  : 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/35'
+              }`}
+              onClick={onAutoDetect}
+              disabled={isDetecting}
+            >
+              {isDetecting ? '⏳ Detecting…' : '🔍 Auto Detect'}
+            </button>
+
+            {/* Snap toggle — only visible after detection */}
+            {spatialIndex && (
+              <div className="mt-2 flex items-center justify-between rounded-xl bg-white/5 px-3 py-2">
+                <span className="text-[10px] text-slate-300">
+                  Snap
+                  <span className="ml-1 text-[9px] text-slate-500">({spatialIndex.count.toLocaleString()} pts)</span>
+                </span>
+                <button
+                  onClick={onToggleSnap}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${snapEnabled ? 'bg-cyan-500' : 'bg-slate-600'}`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${snapEnabled ? 'translate-x-4' : 'translate-x-0.5'}`}
+                  />
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Series manager */}
           <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
@@ -180,8 +224,6 @@ export default function Step3Collect({
                   </tbody>
                 </table>
               </div>
-
-              {/* Export */}
               <div className="mt-2 flex gap-1.5">
                 <button className="flex-1 primary-action-button py-2 text-[10px] gap-1" onClick={onCopy}>
                   <CopyIcon />{copyDone ? 'Copied!' : 'Copy Data'}

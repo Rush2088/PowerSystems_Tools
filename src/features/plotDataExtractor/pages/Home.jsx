@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import {
   pixelToData, recomputeAllSeries, seriesToCSV, SERIES_COLORS,
 } from '../utils/plotExtractorCalc';
-import StepNav     from '../components/StepNav';
-import Step1Upload from '../components/Step1Upload';
+import { detectEdges } from '../utils/edgeDetect';
+import StepNav        from '../components/StepNav';
+import Step1Upload    from '../components/Step1Upload';
 import Step2Calibrate from '../components/Step2Calibrate';
 import Step3Collect   from '../components/Step3Collect';
 
@@ -23,19 +24,24 @@ export default function Home() {
   const [imgSize, setImgSize] = useState({ w: 1, h: 1 });
   const [step, setStep]       = useState(1);
 
-  // ── Calibration (persisted across step changes — never cleared unless user asks) ──
+  // ── Calibration ──
   const [calibStep, setCalibStep]     = useState(0);
   const [calibPixels, setCalibPixels] = useState(INIT_CALIB_PIXELS);
   const [calibValues, setCalibValues] = useState(INIT_CALIB_VALUES);
   const [axisConfig, setAxisConfig]   = useState({ xType: 'linear', yType: 'linear' });
 
   // ── Series & points ──
-  const [series, setSeries]           = useState([mkSeries('Series 1', SERIES_COLORS[0])]);
+  const [series, setSeries]            = useState([mkSeries('Series 1', SERIES_COLORS[0])]);
   const [activeSeriesId, setActiveSId] = useState(null);
-  const [selected, setSelected]       = useState(null);
-  const [editVal, setEditVal]         = useState({ x: '', y: '' });
-  const [hovered, setHovered]         = useState(null);
-  const [copyDone, setCopyDone]       = useState(false);
+  const [selected, setSelected]        = useState(null);
+  const [editVal, setEditVal]          = useState({ x: '', y: '' });
+  const [hovered, setHovered]          = useState(null);
+  const [copyDone, setCopyDone]        = useState(false);
+
+  // ── Auto Detect / Snap ──
+  const [spatialIndex, setSpatialIndex] = useState(null);
+  const [snapEnabled, setSnapEnabled]   = useState(false);
+  const [isDetecting, setIsDetecting]   = useState(false);
 
   // ── Derived ──
   const valKeys = ['x1', 'x2', 'y1', 'y2'];
@@ -68,6 +74,8 @@ export default function Home() {
       setSeries([mkSeries('Series 1', SERIES_COLORS[0])]);
       setSelected(null);
       setActiveSId(null);
+      setSpatialIndex(null);
+      setSnapEnabled(false);
     };
     image.src = url;
   }
@@ -77,7 +85,6 @@ export default function Home() {
     const next = [...calibPixels];
     next[calibStep] = { px, py };
     setCalibPixels(next);
-    // advance to next un-picked slot
     let ns = calibStep + 1;
     while (ns < 4 && next[ns]) ns++;
     if (ns < 4) setCalibStep(ns);
@@ -98,7 +105,6 @@ export default function Home() {
   function finishCalibration() {
     if (!calibComplete) return;
     const calib = buildCalib();
-    // Recompute any existing points with the new calibration
     setSeries(prev => recomputeAllSeries(prev, calib));
     setStep(3);
     setActiveSId(id => id ?? series[0]?.id);
@@ -169,6 +175,28 @@ export default function Home() {
     if (selected?.seriesId === seriesId && selected?.pointId === pointId) setSelected(null);
   }
 
+  // ── Auto Detect ───────────────────────────────────────────────────────────
+  function handleAutoDetect() {
+    if (!img || isDetecting) return;
+    setIsDetecting(true);
+    setSpatialIndex(null);
+    setSnapEnabled(false);
+    // Yield to browser to show loading state, then run (heavy) detection
+    setTimeout(() => {
+      try {
+        const result = detectEdges(img);
+        setSpatialIndex(result);
+        setSnapEnabled(true);
+      } finally {
+        setIsDetecting(false);
+      }
+    }, 30);
+  }
+
+  function handleToggleSnap() {
+    setSnapEnabled(prev => !prev);
+  }
+
   // ── Series management ─────────────────────────────────────────────────────
   function addSeries() {
     const idx = series.length % SERIES_COLORS.length;
@@ -201,6 +229,8 @@ export default function Home() {
     setSeries([mkSeries('Series 1', SERIES_COLORS[0])]);
     setActiveSId(null);
     setSelected(null);
+    setSpatialIndex(null);
+    setSnapEnabled(false);
   }
 
   // ── Export ────────────────────────────────────────────────────────────────
@@ -223,7 +253,7 @@ export default function Home() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen px-4 py-4 sm:px-5 sm:py-5">
-      {/* Top bar: Home button + title */}
+      {/* Top bar */}
       <div className="mx-auto mb-3 flex max-w-[1500px] items-center gap-4">
         <Link to="/" className="primary-action-button shrink-0 gap-1.5 px-4 py-2.5 text-sm">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -238,7 +268,6 @@ export default function Home() {
           <h1 className="text-base font-extrabold leading-tight text-white">Plot Data Extractor</h1>
           <p className="text-[11px] text-slate-400">Extract data points from linear or log scale plots.</p>
         </div>
-        {/* Load new image shortcut (visible after step 1) */}
         {step > 1 && (
           <label className="ml-auto cursor-pointer rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-slate-300 hover:bg-white/10 transition shrink-0">
             ↑ New Image
@@ -254,9 +283,7 @@ export default function Home() {
 
       {/* Step content */}
       <div className="mx-auto max-w-[1500px]">
-        {step === 1 && (
-          <Step1Upload onLoad={handleImageLoad} />
-        )}
+        {step === 1 && <Step1Upload onLoad={handleImageLoad} />}
 
         {step === 2 && (
           <Step2Calibrate
@@ -288,6 +315,9 @@ export default function Home() {
             editVal={editVal}
             totalPoints={totalPoints}
             copyDone={copyDone}
+            spatialIndex={spatialIndex}
+            snapEnabled={snapEnabled}
+            isDetecting={isDetecting}
             onAddPoint={handleAddPoint}
             onSelectPoint={handleSelectPoint}
             onDragPoint={handleDragPoint}
@@ -300,6 +330,8 @@ export default function Home() {
             onDeleteSeries={deleteSeries}
             onRenameSeries={renameSeries}
             onDeletePoint={deletePoint}
+            onAutoDetect={handleAutoDetect}
+            onToggleSnap={handleToggleSnap}
             onRecalibrate={startRecalibrate}
             onReset={resetAll}
             onExportCSV={exportCSV}
