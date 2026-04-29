@@ -1,6 +1,10 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { getTransform, imgToCanvas, canvasToImg, CALIB_LABELS, CALIB_COLORS } from '../utils/plotExtractorCalc';
 
+const MAG_SIZE   = 192;   // magnifier canvas size in px (~2 in at 96 dpi)
+const MAG_ZOOM   = 4;     // zoom multiplier
+const MAG_OFFSET = 24;    // gap between cursor and magnifier edge
+
 // ─── Pure draw function ───────────────────────────────────────────────────────
 function draw(canvas, img, calibPixels, series, selected, hovered, showCalibMarkers, transform) {
   const ctx = canvas.getContext('2d');
@@ -59,6 +63,58 @@ function draw(canvas, img, calibPixels, series, selected, hovered, showCalibMark
   });
 }
 
+// ─── Magnifier draw ───────────────────────────────────────────────────────────
+function drawMagnifier(magCanvas, mainCanvas, cx, cy) {
+  const ctx = magCanvas.getContext('2d');
+  const half = MAG_SIZE / 2;
+  const srcHalf = half / MAG_ZOOM;   // source half-width in main-canvas pixels
+
+  ctx.clearRect(0, 0, MAG_SIZE, MAG_SIZE);
+
+  // Clip to circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(half, half, half, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Fill background (visible when source is near edge)
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, MAG_SIZE, MAG_SIZE);
+
+  // Draw the zoomed patch from the main canvas
+  ctx.drawImage(
+    mainCanvas,
+    cx - srcHalf, cy - srcHalf, srcHalf * 2, srcHalf * 2,
+    0, 0, MAG_SIZE, MAG_SIZE,
+  );
+
+  ctx.restore();
+
+  // Outer ring
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(half, half, half - 1, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
+
+  // Precision crosshair at centre
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255, 80, 80, 0.95)';
+  ctx.lineWidth = 1;
+  // horizontal arm
+  ctx.beginPath(); ctx.moveTo(half - 18, half); ctx.lineTo(half + 18, half); ctx.stroke();
+  // vertical arm
+  ctx.beginPath(); ctx.moveTo(half, half - 18); ctx.lineTo(half, half + 18); ctx.stroke();
+  // centre dot
+  ctx.beginPath();
+  ctx.arc(half, half, 2, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 80, 80, 0.95)';
+  ctx.fill();
+  ctx.restore();
+}
+
 // ─── Hit test (image-pixel space via transform) ───────────────────────────────
 function hitTest(cx, cy, series, transform) {
   const R = 10;
@@ -74,29 +130,21 @@ function hitTest(cx, cy, series, transform) {
 }
 
 // ─── PlotCanvas ───────────────────────────────────────────────────────────────
-// Props:
-//   img, imgSize            — image to display
-//   calibPixels             — calibration positions (for drawing crosshairs)
-//   series, selected, hov   — data point state
-//   showCalibMarkers        — true = Step 2, false = Step 3
-//   mode                    — 'calibrate' | 'collect'
-//   onCanvasClick(px,py)    — called when user clicks empty canvas area (image pixel coords)
-//   onPointMouseDown(hit)   — collect mode: mousedown on existing point
-//   onDrag(hit,px,py)       — collect mode: dragging a point
-//   onHoverChange(hit|null) — collect mode: hover state
-
 export default function PlotCanvas({
   img, imgSize,
   calibPixels, series, selected, hovered,
   showCalibMarkers, mode,
   onCanvasClick, onPointMouseDown, onDrag, onHoverChange,
 }) {
-  const canvasRef    = useRef(null);
-  const containerRef = useRef(null);
-  const transformRef = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
-  const dragRef      = useRef(null); // { hit }
+  const canvasRef      = useRef(null);
+  const containerRef   = useRef(null);
+  const magnifierRef   = useRef(null);
+  const magWrapRef     = useRef(null);
+  const transformRef   = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
+  const dragRef        = useRef(null);
+  const mouseRef       = useRef({ cx: 0, cy: 0, inside: false });
 
-  // ─── Redraw ────────────────────────────────────────────────────────────────
+  // ─── Redraw main canvas ────────────────────────────────────────────────────
   const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !img) return;
@@ -106,7 +154,12 @@ export default function PlotCanvas({
     const t = getTransform(imgSize.w, imgSize.h, canvas.width, canvas.height);
     transformRef.current = t;
     draw(canvas, img, calibPixels, series, selected, hovered, showCalibMarkers, t);
-  }, [img, imgSize, calibPixels, series, selected, hovered, showCalibMarkers]);
+
+    // Refresh magnifier after main canvas redraws
+    if (mouseRef.current.inside) {
+      refreshMagnifier(mouseRef.current.cx, mouseRef.current.cy);
+    }
+  }, [img, imgSize, calibPixels, series, selected, hovered, showCalibMarkers]); // eslint-disable-line
 
   useEffect(() => { redraw(); }, [redraw]);
 
@@ -115,6 +168,33 @@ export default function PlotCanvas({
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, [redraw]);
+
+  // ─── Magnifier helpers ─────────────────────────────────────────────────────
+  function refreshMagnifier(cx, cy) {
+    const magCanvas = magnifierRef.current;
+    const mainCanvas = canvasRef.current;
+    const wrap = magWrapRef.current;
+    if (!magCanvas || !mainCanvas || !wrap) return;
+
+    drawMagnifier(magCanvas, mainCanvas, cx, cy);
+
+    // Position: prefer top-right of cursor; flip when near edges
+    const cw = containerRef.current?.clientWidth  ?? 800;
+    const ch = containerRef.current?.clientHeight ?? 600;
+    let lx = cx + MAG_OFFSET;
+    let ly = cy - MAG_SIZE - MAG_OFFSET;
+    if (lx + MAG_SIZE > cw) lx = cx - MAG_SIZE - MAG_OFFSET;
+    if (ly < 0)             ly = cy + MAG_OFFSET;
+    if (ly + MAG_SIZE > ch) ly = ch - MAG_SIZE - 4;
+
+    wrap.style.left    = `${lx}px`;
+    wrap.style.top     = `${ly}px`;
+    wrap.style.display = 'block';
+  }
+
+  function hideMagnifier() {
+    if (magWrapRef.current) magWrapRef.current.style.display = 'none';
+  }
 
   // ─── Mouse helpers ─────────────────────────────────────────────────────────
   function getXY(e) {
@@ -142,8 +222,11 @@ export default function PlotCanvas({
   }
 
   function handleMouseMove(e) {
-    if (mode !== 'collect') return;
     const { cx, cy } = getXY(e);
+    mouseRef.current = { cx, cy, inside: true };
+    refreshMagnifier(cx, cy);
+
+    if (mode !== 'collect') return;
     const t = transformRef.current;
 
     if (dragRef.current && e.buttons === 1) {
@@ -157,7 +240,11 @@ export default function PlotCanvas({
     canvasRef.current.style.cursor = hit ? 'grab' : 'crosshair';
   }
 
-  function handleMouseUp() { dragRef.current = null; }
+  function handleMouseLeave() {
+    mouseRef.current.inside = false;
+    dragRef.current = null;
+    hideMagnifier();
+  }
 
   return (
     <div ref={containerRef} className="relative h-full w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
@@ -167,9 +254,30 @@ export default function PlotCanvas({
         style={{ cursor: 'crosshair' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseUp={() => { dragRef.current = null; }}
+        onMouseLeave={handleMouseLeave}
       />
+
+      {/* Magnifier overlay */}
+      <div
+        ref={magWrapRef}
+        style={{
+          display:        'none',
+          position:       'absolute',
+          width:          `${MAG_SIZE}px`,
+          height:         `${MAG_SIZE}px`,
+          pointerEvents:  'none',
+          filter:         'drop-shadow(0 4px 12px rgba(0,0,0,0.6))',
+          zIndex:         50,
+        }}
+      >
+        <canvas
+          ref={magnifierRef}
+          width={MAG_SIZE}
+          height={MAG_SIZE}
+          style={{ borderRadius: '50%' }}
+        />
+      </div>
     </div>
   );
 }
