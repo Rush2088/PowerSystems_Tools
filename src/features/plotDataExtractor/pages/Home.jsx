@@ -47,7 +47,10 @@ export default function Home() {
   // ── Derived ──
   const valKeys = ['x1', 'x2', 'y1', 'y2'];
   const calibComplete = calibPixels.every(Boolean) &&
-    valKeys.every(k => calibValues[k] !== '' && isFinite(Number(calibValues[k])));
+    valKeys.every(k => calibValues[k] !== '' && isFinite(Number(calibValues[k]))) &&
+    // log-scale axes must have strictly positive calibration values
+    ['x1', 'x2'].every(k => axisConfig.xType !== 'log' || Number(calibValues[k]) > 0) &&
+    ['y1', 'y2'].every(k => axisConfig.yType !== 'log' || Number(calibValues[k]) > 0);
 
   const buildCalib = useCallback(() => ({
     x1: { ...calibPixels[0], val: Number(calibValues.x1) },

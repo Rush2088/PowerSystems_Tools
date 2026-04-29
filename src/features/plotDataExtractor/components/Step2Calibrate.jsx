@@ -75,9 +75,13 @@ export default function Step2Calibrate({
 
             <div className="flex flex-col gap-2">
               {CALIB_LABELS.map((lbl, i) => {
-                const valKey = CALIB_VAL_KEYS[i]; // x1, x2, y1, y2
+                const valKey   = CALIB_VAL_KEYS[i]; // x1, x2, y1, y2
                 const pixelSet = !!calibPixels[i];
                 const isNext   = !pixelSet && nextPickIdx === i;
+                const axisType = i < 2 ? axisConfig.xType : axisConfig.yType;
+                const numVal   = Number(calibValues[valKey]);
+                const hasValue = calibValues[valKey] !== '';
+                const logError = axisType === 'log' && hasValue && numVal <= 0;
 
                 return (
                   <div
@@ -106,11 +110,16 @@ export default function Step2Calibrate({
                     </div>
                     {/* Value input — always visible */}
                     <input
-                      className={`input-inline w-full text-xs ${!pixelSet ? 'opacity-50' : ''}`}
-                      placeholder={`Enter ${lbl} value`}
+                      className={`input-inline w-full text-xs ${!pixelSet ? 'opacity-50' : ''} ${logError ? 'ring-1 ring-red-500/70 border-red-500/50' : ''}`}
+                      placeholder={axisType === 'log' ? `Enter ${lbl} value (> 0)` : `Enter ${lbl} value`}
                       value={calibValues[valKey] ?? ''}
                       onChange={e => setVal(valKey, e.target.value)}
                     />
+                    {logError && (
+                      <p className="mt-1 text-[9px] text-red-400">
+                        Log scale requires a value &gt; 0
+                      </p>
+                    )}
                   </div>
                 );
               })}

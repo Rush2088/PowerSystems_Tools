@@ -9,19 +9,22 @@ export function pixelToData(px, py, calib) {
   let x, y;
 
   if (xType === 'linear') {
+    // Standard linear interpolation — handles negative values and zero correctly.
     x = x1.val + (px - x1.px) * (x2.val - x1.val) / (x2.px - x1.px);
   } else {
-    // log10 interpolation
-    const logX1 = Math.log10(x1.val);
-    const logX2 = Math.log10(x2.val);
+    // log10 interpolation — calibration values must be > 0 (enforced in UI).
+    const logX1 = Math.log10(Math.max(x1.val, Number.EPSILON));
+    const logX2 = Math.log10(Math.max(x2.val, Number.EPSILON));
     x = Math.pow(10, logX1 + (px - x1.px) * (logX2 - logX1) / (x2.px - x1.px));
   }
 
   if (yType === 'linear') {
+    // Standard linear interpolation — handles negative values and zero correctly.
     y = y1.val + (py - y1.py) * (y2.val - y1.val) / (y2.py - y1.py);
   } else {
-    const logY1 = Math.log10(y1.val);
-    const logY2 = Math.log10(y2.val);
+    // log10 interpolation — calibration values must be > 0 (enforced in UI).
+    const logY1 = Math.log10(Math.max(y1.val, Number.EPSILON));
+    const logY2 = Math.log10(Math.max(y2.val, Number.EPSILON));
     y = Math.pow(10, logY1 + (py - y1.py) * (logY2 - logY1) / (y2.py - y1.py));
   }
 
