@@ -74,12 +74,15 @@ export const SERIES_COLORS = [
   '#a78bfa', '#f472b6', '#38bdf8', '#fb923c',
 ];
 
-export const CALIB_LABELS = ['X1', 'X2', 'Y1', 'Y2'];
+export const CALIB_LABELS = ['Xmin', 'Xmax', 'Ymin', 'Ymax'];
 export const CALIB_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#f59e0b'];
 
+// Internal keys used in calibValues state — kept as x1/x2/y1/y2 for the calib object shape
+export const CALIB_VAL_KEYS = ['x1', 'x2', 'y1', 'y2'];
+
 export const CALIB_PROMPTS = [
-  'Click the X-axis minimum point (X1)',
-  'Click the X-axis maximum point (X2)',
-  'Click the Y-axis minimum point (Y1)',
-  'Click the Y-axis maximum point (Y2)',
+  'Click the X-axis minimum point (Xmin)',
+  'Click the X-axis maximum point (Xmax)',
+  'Click the Y-axis minimum point (Ymin)',
+  'Click the Y-axis maximum point (Ymax)',
 ];

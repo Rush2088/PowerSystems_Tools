@@ -1,5 +1,5 @@
 import PlotCanvas from './PlotCanvas';
-import { CALIB_LABELS, CALIB_COLORS } from '../utils/plotExtractorCalc';
+import { CALIB_LABELS, CALIB_COLORS, CALIB_VAL_KEYS } from '../utils/plotExtractorCalc';
 
 export default function Step2Calibrate({
   img, imgSize,
@@ -66,13 +66,16 @@ export default function Step2Calibrate({
           <div className="rounded-2xl border border-yellow-400/20 bg-yellow-500/5 p-3">
             <div className="mb-1 text-[10px] font-bold uppercase tracking-widest text-yellow-300">Calibration Points</div>
             <p className="mb-3 text-[10px] text-slate-400 leading-relaxed">
-              Click each reference point on the plot, then enter its known value.<br/>
-              <span className="text-yellow-200/60">Tip: Use axis min/max for best accuracy.</span>
+              Click each reference point on the plot, then enter its known value.
+              <span className="mt-1 block text-yellow-200/70">
+                Tip: Choose the outermost points with known coordinates on each axis —
+                the wider the spread, the more accurate the extraction.
+              </span>
             </p>
 
             <div className="flex flex-col gap-2">
               {CALIB_LABELS.map((lbl, i) => {
-                const valKey   = lbl.toLowerCase(); // x1, x2, y1, y2
+                const valKey = CALIB_VAL_KEYS[i]; // x1, x2, y1, y2
                 const pixelSet = !!calibPixels[i];
                 const isNext   = !pixelSet && nextPickIdx === i;
 
@@ -104,7 +107,7 @@ export default function Step2Calibrate({
                     {/* Value input — always visible */}
                     <input
                       className={`input-inline w-full text-xs ${!pixelSet ? 'opacity-50' : ''}`}
-                      placeholder={`${lbl} known value`}
+                      placeholder={`Enter ${lbl} value`}
                       value={calibValues[valKey] ?? ''}
                       onChange={e => setVal(valKey, e.target.value)}
                     />
