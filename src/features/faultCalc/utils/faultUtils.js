@@ -10,15 +10,16 @@ export const HV_VOLTAGE_OPTIONS = [
 ];
 
 export const LV_VOLTAGE_OPTIONS = [
-  {value: '132', label: '132'},
-  {value: '66', label: '66'},
-  {value: '33', label: '33'},
-  {value: '11', label: '11'},
-  {value: '0.77', label: '0.770'},
-  {value: '0.69', label: '0.690'},
-  {value: '0.66', label: '0.660'},
+  {value: '132',   label: '132'},
+  {value: '66',    label: '66'},
+  {value: '33',    label: '33'},
+  {value: '11',    label: '11'},
+  {value: '0.77',  label: '0.770'},
+  {value: '0.69',  label: '0.690'},
+  {value: '0.66',  label: '0.660'},
+  {value: '0.436', label: '0.436'},
   {value: '0.415', label: '0.415'},
-  {value: '0.4', label: '0.400'},
+  {value: '0.4',   label: '0.400'},
 ];
 
 export const C_FACTOR_OPTIONS = [
