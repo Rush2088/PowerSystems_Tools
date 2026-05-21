@@ -20,7 +20,7 @@ const TOOLS = [
   {
     title: 'Protection Coordination',
     description: 'IEC / ANSI overcurrent TCC curve plotter.',
-    route: '/prot-coord',
+    href: 'https://rush2088.github.io/tcc-protection-app/',
   },
   {
     title: 'Transformer R & X Calculator',
@@ -71,6 +71,14 @@ export default function LandingPage() {
   const [focused, setFocused] = useState(null);
   const cardRefs   = useRef(TOOLS.map(() => null));
 
+  const openTool = useCallback((tool) => {
+    if (tool.href) {
+      window.open(tool.href, '_blank', 'noopener,noreferrer');
+    } else {
+      navigate(tool.route);
+    }
+  }, [navigate]);
+
   // Scroll focused card into view
   useEffect(() => {
     if (focused !== null) {
@@ -109,7 +117,7 @@ export default function LandingPage() {
         break;
       case 'Enter':
         e.preventDefault();
-        navigate(TOOLS[focused].route);
+        openTool(TOOLS[focused]);
         break;
       case 'Escape':
         setFocused(null);
@@ -117,7 +125,7 @@ export default function LandingPage() {
       default:
         break;
     }
-  }, [focused, navigate]);
+  }, [focused, openTool]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -139,11 +147,11 @@ export default function LandingPage() {
         <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-3">
           {TOOLS.map((tool, i) => (
             <ToolCard
-              key={tool.route}
+              key={tool.route || tool.href}
               title={tool.title}
               description={tool.description}
               focused={focused === i}
-              onClick={() => navigate(tool.route)}
+              onClick={() => openTool(tool)}
               cardRef={el => { cardRefs.current[i] = el; }}
             />
           ))}
