@@ -92,6 +92,10 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error })
               <Tile label="Z_L1 (LV1)" value={result.Z_L1.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
               <Tile label="Z_L2 (LV2)" value={result.Z_L2.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
             </div>
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Tile label="Z eq  HV — LV1+LV2 (on LV base)" value={result.Z_eq_LV.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z eq  HV — LV1+LV2 (on HV base)" value={result.Z_eq_HV.toFixed(3)} unit="%" sub={`on ${Number(values.mvaBase) * 2} MVA base`} primary />
+            </div>
           </div>
 
           <div>
