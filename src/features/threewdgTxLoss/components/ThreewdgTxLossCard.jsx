@@ -1,4 +1,4 @@
-export default function ThreewdgTxLossCard({ values, setValues, result, error, pending, onCalculate }) {
+export default function ThreewdgTxLossCard({ values, setValues, result, error }) {
   function update(name, value) {
     setValues(prev => ({ ...prev, [name]: value }));
   }
@@ -18,7 +18,6 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error, p
               step="any"
               value={values[name]}
               onChange={e => update(name, e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && onCalculate()}
             />
           </div>
           <span className="unit-base shrink-0">{unit}</span>
@@ -76,19 +75,6 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error, p
             <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" hint="reference" />
           </div>
         </div>
-      </div>
-
-      {/* Calculate button */}
-      <div className="mt-5 flex items-center gap-3">
-        <button
-          className="primary-action-button px-6 py-2.5 text-sm font-bold"
-          onClick={onCalculate}
-        >
-          Calculate
-        </button>
-        {pending && (
-          <span className="text-xs text-slate-400 animate-pulse">Updating in 1 s…</span>
-        )}
       </div>
 
       <div className="divider" />
