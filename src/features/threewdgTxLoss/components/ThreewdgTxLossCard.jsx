@@ -27,13 +27,14 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error, p
     );
   }
 
-  function Tile({ label, value, unit, primary }) {
+  function Tile({ label, value, unit, primary, sub }) {
     return (
       <div className={`result-tile ${primary ? 'result-tile-primary' : 'result-tile-alert'}`}>
         <div className={`mb-1 text-sm ${primary ? 'text-white/85' : 'text-slate-300'}`}>{label}</div>
         <div className={`font-extrabold tracking-tight ${primary ? 'text-white text-2xl sm:text-3xl' : 'text-slate-50 text-xl sm:text-2xl'}`}>
           {value} <span className={`text-sm font-semibold ${primary ? 'text-white/70' : 'text-slate-400'}`}>{unit}</span>
         </div>
+        {sub && <div className="mt-1 text-[10px] text-slate-500">{sub}</div>}
       </div>
     );
   }
@@ -97,9 +98,9 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error, p
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">Star Equivalent Impedances</p>
             <div className="grid grid-cols-3 gap-3">
-              <Tile label="Z_H (HV)"   value={result.Z_H.toFixed(3)}  unit="%" />
-              <Tile label="Z_L1 (LV1)" value={result.Z_L1.toFixed(3)} unit="%" />
-              <Tile label="Z_L2 (LV2)" value={result.Z_L2.toFixed(3)} unit="%" />
+              <Tile label="Z_H (HV)"   value={result.Z_H.toFixed(3)}  unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z_L1 (LV1)" value={result.Z_L1.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z_L2 (LV2)" value={result.Z_L2.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
             </div>
           </div>
 
