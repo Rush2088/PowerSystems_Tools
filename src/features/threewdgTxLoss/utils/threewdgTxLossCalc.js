@@ -16,7 +16,7 @@ export const DEFAULT_VALUES = {
   mvaBase: '175',
   zHL1:    '17.10',
   zHL2:    '17.10',
-  zL1L2:   '35.57',
+  zL1L2:   '31.57',
   pTotal:  '1185',
 };
 

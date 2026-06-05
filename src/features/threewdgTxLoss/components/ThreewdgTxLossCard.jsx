@@ -87,14 +87,11 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error })
         <div className="space-y-5">
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">Star Equivalent Impedances</p>
-            <div className="grid grid-cols-3 gap-3">
-              <Tile label="Z_H (HV)"   value={result.Z_H.toFixed(3)}  unit="%" sub={`on ${values.mvaBase} MVA base`} />
-              <Tile label="Z_L1 (LV1)" value={result.Z_L1.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
-              <Tile label="Z_L2 (LV2)" value={result.Z_L2.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
-            </div>
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Tile label="Z eq  HV — LV1+LV2 (on LV base)" value={result.Z_eq_LV.toFixed(3)} unit="%" sub={`on ${values.mvaBase} MVA base`} />
-              <Tile label="Z eq  HV — LV1+LV2 (on HV base)" value={result.Z_eq_HV.toFixed(3)} unit="%" sub={`on ${Number(values.mvaBase) * 2} MVA base`} primary />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Tile label="Z_H (HV)"              value={result.Z_H.toFixed(3)}     unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z_L1 (LV1)"            value={result.Z_L1.toFixed(3)}    unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z_L2 (LV2)"            value={result.Z_L2.toFixed(3)}    unit="%" sub={`on ${values.mvaBase} MVA base`} />
+              <Tile label="Z eq  HV-(LV1+LV2)"    value={result.Z_eq_HV.toFixed(3)} unit="%" sub={`on ${Number(values.mvaBase) * 2} MVA base (HV)`} />
             </div>
           </div>
 
@@ -112,10 +109,11 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error })
 
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">Winding Pair Load Losses</p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <Tile label="P  HV - LV1"  value={result.P_HL1.toFixed(1)}  unit="kW" primary />
-              <Tile label="P  HV - LV2"  value={result.P_HL2.toFixed(1)}  unit="kW" primary />
-              <Tile label="P  LV1 - LV2" value={result.P_L1L2.toFixed(1)} unit="kW" primary />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Tile label="P  HV - LV1"       value={result.P_HL1.toFixed(1)}   unit="kW" primary />
+              <Tile label="P  HV - LV2"       value={result.P_HL2.toFixed(1)}   unit="kW" primary />
+              <Tile label="P  LV1 - LV2"      value={result.P_L1L2.toFixed(1)}  unit="kW" primary />
+              <Tile label="P  HV-(LV1+LV2)"   value={result.P_check.toFixed(1)} unit="kW" primary />
             </div>
           </div>
 
