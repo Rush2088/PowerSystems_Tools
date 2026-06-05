@@ -1,41 +1,45 @@
+// ── Input primitives (defined outside to preserve identity across renders) ────
+
+function Row({ label, name, unit, hint, values, onChange }) {
+  return (
+    <div className="summary-chip">
+      <div className="summary-label">
+        {label}
+        {hint && <span className="ml-1.5 text-[10px] text-slate-500">{hint}</span>}
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="summary-input-wrap flex-none">
+          <input
+            className="input-inline w-[7rem]"
+            type="number"
+            step="any"
+            value={values[name]}
+            onChange={e => onChange(name, e.target.value)}
+          />
+        </div>
+        <span className="unit-base shrink-0">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+function Tile({ label, value, unit, primary, sub }) {
+  return (
+    <div className={`result-tile ${primary ? 'result-tile-primary' : 'result-tile-alert'}`}>
+      <div className={`mb-1 text-sm ${primary ? 'text-white/85' : 'text-slate-300'}`}>{label}</div>
+      <div className={`font-extrabold tracking-tight ${primary ? 'text-white text-2xl sm:text-3xl' : 'text-slate-50 text-xl sm:text-2xl'}`}>
+        {value} <span className={`text-sm font-semibold ${primary ? 'text-white/70' : 'text-slate-400'}`}>{unit}</span>
+      </div>
+      {sub && <div className="mt-1 text-[10px] text-slate-500">{sub}</div>}
+    </div>
+  );
+}
+
+// ── Main card ─────────────────────────────────────────────────────────────────
+
 export default function ThreewdgTxLossCard({ values, setValues, result, error }) {
   function update(name, value) {
     setValues(prev => ({ ...prev, [name]: value }));
-  }
-
-  function Row({ label, name, unit, hint }) {
-    return (
-      <div className="summary-chip">
-        <div className="summary-label">
-          {label}
-          {hint && <span className="ml-1.5 text-[10px] text-slate-500">{hint}</span>}
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          <div className="summary-input-wrap flex-none">
-            <input
-              className="input-inline w-[7rem]"
-              type="number"
-              step="any"
-              value={values[name]}
-              onChange={e => update(name, e.target.value)}
-            />
-          </div>
-          <span className="unit-base shrink-0">{unit}</span>
-        </div>
-      </div>
-    );
-  }
-
-  function Tile({ label, value, unit, primary, sub }) {
-    return (
-      <div className={`result-tile ${primary ? 'result-tile-primary' : 'result-tile-alert'}`}>
-        <div className={`mb-1 text-sm ${primary ? 'text-white/85' : 'text-slate-300'}`}>{label}</div>
-        <div className={`font-extrabold tracking-tight ${primary ? 'text-white text-2xl sm:text-3xl' : 'text-slate-50 text-xl sm:text-2xl'}`}>
-          {value} <span className={`text-sm font-semibold ${primary ? 'text-white/70' : 'text-slate-400'}`}>{unit}</span>
-        </div>
-        {sub && <div className="mt-1 text-[10px] text-slate-500">{sub}</div>}
-      </div>
-    );
   }
 
   return (
@@ -61,9 +65,9 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error })
             Winding Pair Impedances
           </p>
           <div className="flex flex-col gap-3">
-            <Row label="Z  HV - LV1"  name="zHL1"  unit="%" hint="on LV MVA base" />
-            <Row label="Z  HV - LV2"  name="zHL2"  unit="%" hint="on LV MVA base" />
-            <Row label="Z  LV1 - LV2" name="zL1L2" unit="%" hint="on LV MVA base" />
+            <Row label="Z  HV - LV1"  name="zHL1"  unit="%" hint="on LV MVA base" values={values} onChange={update} />
+            <Row label="Z  HV - LV2"  name="zHL2"  unit="%" hint="on LV MVA base" values={values} onChange={update} />
+            <Row label="Z  LV1 - LV2" name="zL1L2" unit="%" hint="on LV MVA base" values={values} onChange={update} />
           </div>
         </div>
         <div>
@@ -71,8 +75,8 @@ export default function ThreewdgTxLossCard({ values, setValues, result, error })
             Load Loss &amp; Rating
           </p>
           <div className="flex flex-col gap-3">
-            <Row label="Total Load Loss"     name="pTotal"  unit="kW"  hint="HV at 2x LV MVA base" />
-            <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" hint="reference" />
+            <Row label="Total Load Loss"     name="pTotal"  unit="kW"  hint="HV at 2x LV MVA base" values={values} onChange={update} />
+            <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" hint="reference"             values={values} onChange={update} />
           </div>
         </div>
       </div>
