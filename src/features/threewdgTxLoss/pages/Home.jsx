@@ -1,16 +1,35 @@
 import { Link } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import ThreewdgTxLossCard from '../components/ThreewdgTxLossCard';
 import { DEFAULT_VALUES, validateInputs, calculateTxLoss } from '../utils/threewdgTxLossCalc';
 
 export default function Home() {
-  const [values, setValues] = useState(DEFAULT_VALUES);
+  const [values, setValues]             = useState(DEFAULT_VALUES);
+  const [submitted, setSubmitted]       = useState(DEFAULT_VALUES);
+  const [pending, setPending]           = useState(false);
 
+  // Debounce: update submitted values 1 s after the user stops typing
+  useEffect(() => {
+    setPending(true);
+    const timer = setTimeout(() => {
+      setSubmitted(values);
+      setPending(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [values]);
+
+  // Calculate only from submitted (debounced) values
   const { result, error } = useMemo(() => {
-    const validation = validateInputs(values);
+    const validation = validateInputs(submitted);
     if (!validation.valid) return { result: null, error: validation.message };
     return { result: calculateTxLoss(validation.parsed), error: '' };
-  }, [values]);
+  }, [submitted]);
+
+  // Immediate calculation on button click
+  function handleCalculate() {
+    setSubmitted(values);
+    setPending(false);
+  }
 
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
@@ -33,6 +52,8 @@ export default function Home() {
           setValues={setValues}
           result={result}
           error={error}
+          pending={pending}
+          onCalculate={handleCalculate}
         />
       </div>
     </main>
