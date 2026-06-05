@@ -14,10 +14,10 @@
 
 export const DEFAULT_VALUES = {
   mvaBase: '175',
-  zHL1:    '14.90',
-  zHL2:    '14.90',
-  zL1L2:   '25.80',
-  pTotal:  '1050',
+  zHL1:    '17.10',
+  zHL2:    '17.10',
+  zL1L2:   '35.57',
+  pTotal:  '1185',
 };
 
 export function validateInputs(values) {
