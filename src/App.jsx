@@ -7,6 +7,7 @@ import ProtCoordHome from './features/protCoord/pages/Home';
 import TransformerRXHome from './features/transformerRX/pages/Home';
 import KtFactorHome from './features/ktFactor/pages/Home';
 import PlotDataExtractorHome from './features/plotDataExtractor/pages/Home';
+import ThreewdgTxLossHome from './features/threewdgTxLoss/pages/Home';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
       <Route path="/transformer-rx"      element={<TransformerRXHome />} />
       <Route path="/kt-factor"           element={<KtFactorHome />} />
       <Route path="/plot-data-extractor" element={<PlotDataExtractorHome />} />
+      <Route path="/3wdg-tx-loss"        element={<ThreewdgTxLossHome />} />
       <Route path="*"                    element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -37,6 +37,11 @@ const TOOLS = [
     description: 'Extract data points from linear or log scale plots.',
     route: '/plot-data-extractor',
   },
+  {
+    title: '3-Winding TX — Loss Breakdown',
+    description: 'Star equivalent impedances & per-winding load loss split for 3-winding transformers.',
+    route: '/3wdg-tx-loss',
+  },
 ];
 
 const COLS = 2; // grid columns on sm+
