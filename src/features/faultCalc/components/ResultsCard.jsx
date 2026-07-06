@@ -175,26 +175,17 @@ export default function ResultsCard({ values, setValues, result, error }) {
             label="Calculate Currents at Different LV Base"
             checked={useDifferentLVBase}
             onChange={(checked) => updateField("useDifferentLVBase", checked)}
-            note="Use when the transformer's rated/tap LV voltage differs from the system's declared LV nominal voltage (e.g. 0.436kV tap vs 0.400kV network nominal)."
           />
 
           {useDifferentLVBase && (
             <EditableCard label="System LV Base Voltage" unit="kV">
-              <select
+              <input
                 className="input-inline w-[6.5rem] sm:w-[7rem]"
+                type="number"
+                step="any"
                 value={values.systemLvKV}
                 onChange={(e) => updateField("systemLvKV", e.target.value)}
-              >
-                {LV_VOLTAGE_OPTIONS.map((v) => (
-                  <option
-                    key={v.value}
-                    value={v.value}
-                    className="bg-slate-900 text-white"
-                  >
-                    {v.label}
-                  </option>
-                ))}
-              </select>
+              />
             </EditableCard>
           )}
         </div>
