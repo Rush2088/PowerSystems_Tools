@@ -29,6 +29,8 @@ export default function Home() {
       inverterMVA,
       inverterCount,
       inverterMaxCurrentFactor,
+      useDifferentLVBase,
+      systemLvKV,
     } = validation.parsed;
 
     return {
@@ -36,6 +38,7 @@ export default function Home() {
         gridKA, hvKV, lvKV, txMVA, txZ, cFactor,
         considerKFactor, addInverterContribution,
         inverterMVA, inverterCount, inverterMaxCurrentFactor,
+        useDifferentLVBase, systemLvKV,
       ),
       error: '',
     };

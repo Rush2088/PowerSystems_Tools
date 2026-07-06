@@ -41,6 +41,8 @@ export const DEFAULT_VALUES = {
   inverterMVA: '2.4',
   inverterCount: '30',
   inverterMaxCurrentFactor: '1.2',
+  useDifferentLVBase: false,
+  systemLvKV: '0.4',
 };
 
 export function inverterContribution(S, V, num, maxI) {
@@ -50,23 +52,46 @@ export function inverterContribution(S, V, num, maxI) {
 export function calculateFaultLevel(
     gridKA, hvKV, lvKV, txMVA, txZ, cFactor = 1.1, considerKFactor = false,
     addInverterContribution = false, inverterMVA = 0, inverterCount = 0,
-    inverterMaxCurrentFactor = 0) {
+    inverterMaxCurrentFactor = 0, useDifferentLVBase = false, systemLvKV = 0) {
   const Sbase = 100e6;
 
   const I_HVbase = Sbase / (Math.sqrt(3) * hvKV * 1e3);
   const If_PU = (gridKA * 1e3) / I_HVbase;
   const Z_grid_pu = cFactor / If_PU;
 
-  const Z_TX_pu_uncorrected = (txZ * 0.01 / txMVA) * 100;
+  // Transformer impedance in pu on the 100 MVA study base, referred to the
+  // transformer's OWN rated LV voltage (lvKV). This is the "own base" value.
+  const Z_TX_pu_ownbase = (txZ * 0.01 / txMVA) * 100;
 
+  // If a separate system LV base voltage is requested (e.g. network nominal
+  // 0.400 kV vs. a transformer rated/tap voltage of 0.436 kV), the transformer
+  // impedance must be re-based using (V_rated / V_systemBase)^2, since the
+  // pu value on the 100 MVA base was originally computed using the
+  // transformer's own rated voltage as the implicit voltage base.
+  const applyDifferentLVBase =
+      useDifferentLVBase && Number.isFinite(systemLvKV) && systemLvKV > 0;
+
+  const lvBaseConversionFactor =
+      applyDifferentLVBase ? Math.pow(lvKV / systemLvKV, 2) : 1;
+
+  const Z_TX_pu_sysbase = Z_TX_pu_ownbase * lvBaseConversionFactor;
+
+  // K_T (IEC 60909 transformer impedance correction factor) always uses the
+  // transformer's OWN rated data (x_T ~= txZ), regardless of which LV base is
+  // chosen for the network study. K_T is a property of the transformer, not
+  // of an arbitrary system base voltage.
   const xT = txZ / 100;
   const K_T = (0.95 * cFactor) / (1 + 0.6 * xT);
   const K_T_applied = considerKFactor ? K_T : 1;
 
-  const Z_TX_pu = K_T_applied * Z_TX_pu_uncorrected;
+  const Z_TX_pu = K_T_applied * Z_TX_pu_sysbase;
   const Ztot_pu = Z_TX_pu + Z_grid_pu;
 
-  const I_LVbase = Sbase / (Math.sqrt(3) * lvKV * 1e3);
+  // The fault point / base current uses the effective LV voltage: the system
+  // LV base voltage if selected, otherwise the transformer's rated LV voltage.
+  const effectiveLvKV = applyDifferentLVBase ? systemLvKV : lvKV;
+
+  const I_LVbase = Sbase / (Math.sqrt(3) * effectiveLvKV * 1e3);
   const If_pu = cFactor / Ztot_pu;
   const gridContributionKA = Math.round((If_pu * I_LVbase / 1e3) * 100) / 100;
 
@@ -74,7 +99,7 @@ export function calculateFaultLevel(
       Math.round(
           inverterContribution(
               inverterMVA,
-              lvKV,
+              effectiveLvKV,
               inverterCount,
               inverterMaxCurrentFactor,
               ) *
@@ -93,7 +118,12 @@ export function calculateFaultLevel(
     I_LVbase,
     K_T,
     K_T_applied,
-    Z_TX_pu_uncorrected,
+    Z_TX_pu_uncorrected: Z_TX_pu_ownbase,
+    Z_TX_pu_ownbase,
+    Z_TX_pu_sysbase,
+    lvBaseConversionFactor,
+    applyDifferentLVBase,
+    effectiveLvKV,
     Z_TX_pu,
     Ztot_pu,
     If_pu,
@@ -108,6 +138,8 @@ export function calculateFaultLevel(
     inverterCount,
     inverterMaxCurrentFactor,
     kFactorApplied: considerKFactor,
+    useDifferentLVBase,
+    systemLvKV,
   };
 }
 
@@ -124,6 +156,8 @@ export function validateInputs(values) {
     inverterMVA: Number(values.inverterMVA),
     inverterCount: Number(values.inverterCount),
     inverterMaxCurrentFactor: Number(values.inverterMaxCurrentFactor),
+    useDifferentLVBase: Boolean(values.useDifferentLVBase),
+    systemLvKV: Number(values.systemLvKV),
   };
 
   const baseValid = [
@@ -149,6 +183,24 @@ export function validateInputs(values) {
       message: 'LV bus voltage should be lower than HV bus voltage.',
       parsed,
     };
+  }
+
+  if (parsed.useDifferentLVBase) {
+    if (!Number.isFinite(parsed.systemLvKV) || parsed.systemLvKV <= 0) {
+      return {
+        valid: false,
+        message: 'Please enter a valid positive value for the system LV base voltage.',
+        parsed,
+      };
+    }
+
+    if (parsed.systemLvKV >= parsed.hvKV) {
+      return {
+        valid: false,
+        message: 'System LV base voltage should be lower than HV bus voltage.',
+        parsed,
+      };
+    }
   }
 
   if (parsed.addInverterContribution) {

@@ -71,7 +71,15 @@ export default function ResultsCard({ values, setValues, result, error }) {
   const kTDisplay =
     result && result.K_T ? result.K_T.toFixed(4) : "1.0000";
 
-  const lvVoltageLabel = values.lvKV || "LV";
+  const useDifferentLVBase = !!values.useDifferentLVBase;
+
+  const effectiveLvLabel = result
+    ? result.effectiveLvKV
+    : useDifferentLVBase
+    ? values.systemLvKV
+    : values.lvKV;
+
+  const lvVoltageLabel = effectiveLvLabel || "LV";
 
   return (
     <section className="glass-card p-4 sm:p-5">
@@ -138,7 +146,14 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <EditableCard label="LV Bus Voltage" unit="kV">
+          <EditableCard
+            label={
+              useDifferentLVBase
+                ? "Transformer LV Voltage (Rated)"
+                : "LV Bus Voltage"
+            }
+            unit="kV"
+          >
             <select
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.lvKV}
@@ -155,6 +170,33 @@ export default function ResultsCard({ values, setValues, result, error }) {
               ))}
             </select>
           </EditableCard>
+
+          <CheckboxCard
+            label="Calculate Currents at Different LV Base"
+            checked={useDifferentLVBase}
+            onChange={(checked) => updateField("useDifferentLVBase", checked)}
+            note="Use when the transformer's rated/tap LV voltage differs from the system's declared LV nominal voltage (e.g. 0.436kV tap vs 0.400kV network nominal)."
+          />
+
+          {useDifferentLVBase && (
+            <EditableCard label="System LV Base Voltage" unit="kV">
+              <select
+                className="input-inline w-[6.5rem] sm:w-[7rem]"
+                value={values.systemLvKV}
+                onChange={(e) => updateField("systemLvKV", e.target.value)}
+              >
+                {LV_VOLTAGE_OPTIONS.map((v) => (
+                  <option
+                    key={v.value}
+                    value={v.value}
+                    className="bg-slate-900 text-white"
+                  >
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+            </EditableCard>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 sm:gap-4">
@@ -184,7 +226,8 @@ export default function ResultsCard({ values, setValues, result, error }) {
             onChange={(checked) => updateField("considerKFactor", checked)}
             note={
               <>
-                K<sub>t</sub> = {kTDisplay}
+                K<sub>t</sub> = {kTDisplay} (always based on the transformer's
+                own rated impedance, independent of LV base choice)
               </>
             }
           />
@@ -244,13 +287,23 @@ export default function ResultsCard({ values, setValues, result, error }) {
             value={`${result.Z_grid_pu.toFixed(4)} pu`}
           />
           <ResultTile
-            label="Transformer Z (100 MVA Base)"
+            label={
+              result.applyDifferentLVBase
+                ? "Transformer Z (100 MVA Base, re-based to System LV)"
+                : "Transformer Z (100 MVA Base)"
+            }
             value={`${result.Z_TX_pu.toFixed(4)} pu`}
           />
           <ResultTile
             label="Total Z (100 MVA Base)"
             value={`${result.Ztot_pu.toFixed(4)} pu`}
           />
+          {result.applyDifferentLVBase && (
+            <ResultTile
+              label="LV Base Conversion Factor (Vrated/Vbase)²"
+              value={`× ${result.lvBaseConversionFactor.toFixed(4)}`}
+            />
+          )}
           <ResultTile
             label={`Grid Contribution @ ${lvVoltageLabel} kV`}
             value={`${result.gridContributionKA.toFixed(2)} kA`}
