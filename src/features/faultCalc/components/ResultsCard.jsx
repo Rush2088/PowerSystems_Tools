@@ -164,28 +164,36 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <EditableCard label="Faulted System Voltage Base" unit="kV">
-            <input
-              className="input-inline w-[6.5rem] sm:w-[7rem] disabled:opacity-60 disabled:cursor-not-allowed"
-              type="number"
-              step="any"
-              disabled={!useDifferentLVBase}
-              value={useDifferentLVBase ? values.systemLvKV : values.lvKV}
-              onChange={(e) => updateField("systemLvKV", e.target.value)}
-            />
-          </EditableCard>
-
-          <CheckboxCard
-            label="Calculate Currents at Different LV Base"
-            checked={useDifferentLVBase}
-            onChange={(checked) =>
-              setValues((prev) => ({
-                ...prev,
-                useDifferentLVBase: checked,
-                systemLvKV: checked ? prev.lvKV : prev.systemLvKV,
-              }))
-            }
-          />
+          <div className="summary-chip">
+            <div className="summary-label">Faulted System Voltage Base</div>
+            <div className="flex items-center justify-between gap-3">
+              <div className="summary-input-wrap flex-none">
+                <input
+                  className="input-inline w-[6.5rem] sm:w-[7rem] disabled:opacity-60 disabled:cursor-not-allowed"
+                  type="number"
+                  step="any"
+                  disabled={!useDifferentLVBase}
+                  value={useDifferentLVBase ? values.systemLvKV : values.lvKV}
+                  onChange={(e) => updateField("systemLvKV", e.target.value)}
+                />
+              </div>
+              <span className="unit-base shrink-0">kV</span>
+            </div>
+            <label className="checkbox-row mt-3">
+              <input
+                type="checkbox"
+                checked={useDifferentLVBase}
+                onChange={(e) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    useDifferentLVBase: e.target.checked,
+                    systemLvKV: e.target.checked ? prev.lvKV : prev.systemLvKV,
+                  }))
+                }
+              />
+              <span>Calculate Currents at Different LV Base</span>
+            </label>
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:gap-4">
