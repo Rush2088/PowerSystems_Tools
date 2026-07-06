@@ -36,7 +36,7 @@ export const DEFAULT_VALUES = {
   txMVA: '180',
   txZ: '14.5',
   cFactor: '1.1',
-  considerKFactor: false,
+  considerKFactor: true,
   addInverterContribution: false,
   inverterMVA: '2.4',
   inverterCount: '30',
