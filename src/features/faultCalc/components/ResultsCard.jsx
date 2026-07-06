@@ -164,20 +164,22 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <div className="summary-chip">
-            <div className="summary-label">Faulted System Voltage Base</div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.05] p-4">
             <div className="flex items-center justify-between gap-3">
-              <div className="summary-input-wrap flex-none">
-                <input
-                  className="input-inline w-[6.5rem] sm:w-[7rem] disabled:opacity-60 disabled:cursor-not-allowed"
-                  type="number"
-                  step="any"
-                  disabled={!useDifferentLVBase}
-                  value={useDifferentLVBase ? values.systemLvKV : values.lvKV}
-                  onChange={(e) => updateField("systemLvKV", e.target.value)}
-                />
+              <div className="summary-label">Faulted System Voltage Base</div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="summary-input-wrap flex-none">
+                  <input
+                    className="input-inline w-[6.5rem] sm:w-[7rem] disabled:opacity-60 disabled:cursor-not-allowed"
+                    type="number"
+                    step="any"
+                    disabled={!useDifferentLVBase}
+                    value={useDifferentLVBase ? values.systemLvKV : values.lvKV}
+                    onChange={(e) => updateField("systemLvKV", e.target.value)}
+                  />
+                </div>
+                <span className="unit-base shrink-0">kV</span>
               </div>
-              <span className="unit-base shrink-0">kV</span>
             </div>
             <label className="checkbox-row mt-3">
               <input
@@ -295,12 +297,6 @@ export default function ResultsCard({ values, setValues, result, error }) {
             label="Total Z (100 MVA Base)"
             value={`${result.Ztot_pu.toFixed(4)} pu`}
           />
-          {result.applyDifferentLVBase && (
-            <ResultTile
-              label="LV Base Conversion Factor (Vrated/Vbase)²"
-              value={`× ${result.lvBaseConversionFactor.toFixed(4)}`}
-            />
-          )}
           <ResultTile
             label={`Grid Contribution @ ${lvVoltageLabel} kV`}
             value={`${result.gridContributionKA.toFixed(2)} kA`}
