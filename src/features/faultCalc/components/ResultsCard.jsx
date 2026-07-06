@@ -16,6 +16,22 @@ function EditableCard({ label, unit, children }) {
   );
 }
 
+function DisplayCard({ label, unit, value }) {
+  return (
+    <div className="summary-chip">
+      <div className="summary-label">{label}</div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="summary-input-wrap flex-none">
+          <div className="input-inline w-[6.5rem] sm:w-[7rem] flex items-center justify-center">
+            {value}
+          </div>
+        </div>
+        <span className="unit-base shrink-0">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
 function CheckboxCard({ label, checked, onChange, note }) {
   return (
     <div className="summary-chip-checkbox">
@@ -128,7 +144,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <EditableCard label="HV Bus Voltage" unit="kV">
+          <EditableCard label="Transformer HV Bus Voltage" unit="kV">
             <select
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.hvKV}
@@ -146,14 +162,7 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <EditableCard
-            label={
-              useDifferentLVBase
-                ? "Transformer LV Voltage (Rated)"
-                : "LV Bus Voltage"
-            }
-            unit="kV"
-          >
+          <EditableCard label="Transformer LV Bus Voltage" unit="kV">
             <select
               className="input-inline w-[6.5rem] sm:w-[7rem]"
               value={values.lvKV}
@@ -170,6 +179,12 @@ export default function ResultsCard({ values, setValues, result, error }) {
               ))}
             </select>
           </EditableCard>
+
+          <DisplayCard
+            label="Faulted System Voltage Base"
+            unit="kV"
+            value={lvVoltageLabel}
+          />
 
           <CheckboxCard
             label="Calculate Currents at Different LV Base"
