@@ -16,22 +16,6 @@ function EditableCard({ label, unit, children }) {
   );
 }
 
-function DisplayCard({ label, unit, value }) {
-  return (
-    <div className="summary-chip">
-      <div className="summary-label">{label}</div>
-      <div className="flex items-center justify-between gap-3">
-        <div className="summary-input-wrap flex-none">
-          <div className="input-inline w-[6.5rem] sm:w-[7rem] flex items-center justify-center">
-            {value}
-          </div>
-        </div>
-        <span className="unit-base shrink-0">{unit}</span>
-      </div>
-    </div>
-  );
-}
-
 function CheckboxCard({ label, checked, onChange, note }) {
   return (
     <div className="summary-chip-checkbox">
@@ -180,29 +164,28 @@ export default function ResultsCard({ values, setValues, result, error }) {
             </select>
           </EditableCard>
 
-          <DisplayCard
-            label="Faulted System Voltage Base"
-            unit="kV"
-            value={lvVoltageLabel}
-          />
+          <EditableCard label="Faulted System Voltage Base" unit="kV">
+            <input
+              className="input-inline w-[6.5rem] sm:w-[7rem] disabled:opacity-60 disabled:cursor-not-allowed"
+              type="number"
+              step="any"
+              disabled={!useDifferentLVBase}
+              value={useDifferentLVBase ? values.systemLvKV : values.lvKV}
+              onChange={(e) => updateField("systemLvKV", e.target.value)}
+            />
+          </EditableCard>
 
           <CheckboxCard
             label="Calculate Currents at Different LV Base"
             checked={useDifferentLVBase}
-            onChange={(checked) => updateField("useDifferentLVBase", checked)}
+            onChange={(checked) =>
+              setValues((prev) => ({
+                ...prev,
+                useDifferentLVBase: checked,
+                systemLvKV: checked ? prev.lvKV : prev.systemLvKV,
+              }))
+            }
           />
-
-          {useDifferentLVBase && (
-            <EditableCard label="System LV Base Voltage" unit="kV">
-              <input
-                className="input-inline w-[6.5rem] sm:w-[7rem]"
-                type="number"
-                step="any"
-                value={values.systemLvKV}
-                onChange={(e) => updateField("systemLvKV", e.target.value)}
-              />
-            </EditableCard>
-          )}
         </div>
 
         <div className="flex flex-col gap-3 sm:gap-4">
