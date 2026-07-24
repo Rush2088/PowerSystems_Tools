@@ -68,10 +68,11 @@ export function calculateTxLoss({ zHL1, zHL2, zL1L2, pTotal }) {
 
   // Z equivalent seen from HV with both LV windings in parallel
   // Z_eq (on LV MVA base) = Z_H + Z_L1||Z_L2
-  // Convert to HV MVA base: divide by 2  (S_HV = 2 x S_LV)
+  // Convert to HV MVA base: multiply by 2  (S_HV = 2 x S_LV)
+  // Z%(new base) = Z%(old base) x (MVA_new / MVA_old)
   const Z_L_parallel = (Z_L1 * Z_L2) / (Z_L1 + Z_L2);
   const Z_eq_LV = Z_H + Z_L_parallel;
-  const Z_eq_HV = Z_eq_LV / 2;
+  const Z_eq_HV = Z_eq_LV * 2;
 
   return { Z_H, Z_L1, Z_L2, P_H, P_L1, P_L2, P_HL1, P_HL2, P_L1L2, P_check, verified, Z_L_parallel, Z_eq_LV, Z_eq_HV };
 }
