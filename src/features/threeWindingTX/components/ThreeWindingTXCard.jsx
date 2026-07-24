@@ -157,21 +157,17 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
             </div>
           )}
 
-          {/* T-Equivalent star impedances */}
+          {/* 2 rows × 3 cols results */}
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
               T-Equivalent Impedances
             </p>
             <div className="grid grid-cols-3 gap-3">
+              {/* Row 1 — star legs */}
               <Tile label="Z_HV"  value={result.H}  unit="%" sub="on LV MVA base" />
               <Tile label="Z_LV1" value={result.L1} unit="%" sub="on LV MVA base" />
               <Tile label="Z_LV2" value={result.L2} unit="%" sub="on LV MVA base" />
-            </div>
-          </div>
-
-          {/* Z_eq and Z(LV1-LV2) derived */}
-          {result.Z_eq !== null ? (
-            <div className="grid grid-cols-2 gap-3">
+              {/* Row 2 — derived quantities */}
               <Tile
                 label="Z_eq = Z (HV – LV1+LV2)"
                 value={result.Z_eq}
@@ -179,22 +175,28 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
                 primary
                 sub="on LV MVA base"
               />
-              <Tile
-                label="Z (LV1 – LV2)"
-                value={result.Z_lv}
-                unit="%"
-                sub="on LV MVA base"
-              />
+              {result.Z_eq_hv !== null ? (
+                <Tile
+                  label="Z_eq (HV base)"
+                  value={result.Z_eq_hv}
+                  unit="%"
+                  primary
+                  sub="on HV MVA base"
+                />
+              ) : (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+                  {result.eqNote}
+                </div>
+              )}
+              <Tile label="Z (LV1 – LV2)" value={result.Z_lv} unit="%" sub="on LV MVA base" />
             </div>
-          ) : (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
-              {result.eqNote}
-            </div>
-          )}
+          </div>
 
-          {/* Formula footnote */}
-          <div className="text-xs text-slate-200 font-mono pt-1">
-            Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)
+          {/* Notes */}
+          <div className="text-xs text-slate-200 pt-1 space-y-1">
+            <div className="font-semibold text-slate-100 mb-1">Notes:</div>
+            <div>1. Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
+            <div>2. TX MVA ratings assumed: LV1 = LV2 = S; HV = 2 × S &nbsp;→&nbsp; Z_eq (HV base) = 2 × Z_eq (LV base)</div>
           </div>
 
         </div>

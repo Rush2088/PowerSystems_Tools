@@ -86,7 +86,10 @@ export function calculateThreeWindingTX({ X, Y, Z, method }) {
   }
 
   const hasNegative = H < 0 || L1 < 0 || L2 < 0;
-  const Z_lv = L1 + L2;   // Z(LV1-LV2) with HV open = sum of LV star legs
+  const Z_lv = L1 + L2;             // Z(LV1-LV2) with HV open = sum of LV star legs
+  // Convert Z_eq to HV MVA base: HV = 2×LV (assumed equal LV1=LV2 ratings)
+  // Z%(new base) = Z%(old base) × (MVA_new / MVA_old)
+  const Z_eq_hv = Z_eq !== null ? Z_eq * 2 : null;
 
-  return { H, L1, L2, Z_eq, Z_lv, eqNote, hasNegative };
+  return { H, L1, L2, Z_eq, Z_eq_hv, Z_lv, eqNote, hasNegative };
 }
