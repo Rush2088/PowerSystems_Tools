@@ -115,10 +115,10 @@ export default function ThreeWdgTxCard({ values, setValues, result, error }) {
 
       {/* Row 1 — LV MVA base */}
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-        Test Impedances — select known measurement
+        TX Impedance and MVA Rating
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" sub="see note 1" values={values} onChange={update} />
+        <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" sub="See Note 1" values={values} onChange={update} />
       </div>
 
       {/* Row 2 — always active */}
