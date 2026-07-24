@@ -6,8 +6,8 @@ function Row({ label, name, unit, hint, values, onChange }) {
   return (
     <div className="summary-chip">
       <div className="summary-label">
-        {label}
-        {hint && <span className="ml-1.5 text-[10px] text-slate-500">{hint}</span>}
+        <div>{label}</div>
+        {hint && <div className="text-[10px] text-slate-400 mt-0.5">{hint}</div>}
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="summary-input-wrap flex-none">
@@ -74,7 +74,8 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
           Known test impedances
         </p>
         <select
-          className="input-inline w-full"
+          className="input-inline w-full text-left"
+          style={{ textAlignLast: 'left' }}
           value={values.method}
           onChange={e => update('method', e.target.value)}
         >
@@ -147,10 +148,6 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
                 <div className="text-xs text-slate-400 space-y-1">
                   <div className="text-slate-300 font-semibold text-sm mb-1">Formula</div>
                   <div className="font-mono">Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
-                  <div className="text-[10px] mt-2 text-slate-500">
-                    Equivalent impedance seen from HV terminals with both LV windings in parallel.
-                    Used for fault level calculations on the HV bus.
-                  </div>
                 </div>
               </div>
             </div>

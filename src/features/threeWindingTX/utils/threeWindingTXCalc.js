@@ -16,25 +16,25 @@
 
 export const METHODS = [
   {
-    id: 'method1',
-    label: 'Method 1 — Known: Z(HV–LV1+LV2), Z(HV–LV1), Z(HV–LV2)',
-    xLabel: 'Z (HV – LV1+LV2)',
-    xHint: 'HV to both LV windings shorted together',
+    id: 'method2',
+    label: 'Method 1 — Z(LV1–LV2), Z(HV–LV1), Z(HV–LV2)',
+    xLabel: 'Z (LV1 – LV2)',
+    xHint: 'Between LV windings, HV open-circuited',
     yLabel: 'Z (HV – LV1)',
     zLabel: 'Z (HV – LV2)',
   },
   {
-    id: 'method2',
-    label: 'Method 2 — Known: Z(LV1–LV2), Z(HV–LV1), Z(HV–LV2)',
-    xLabel: 'Z (LV1 – LV2)',
-    xHint: 'Between LV windings, HV open-circuited',
+    id: 'method1',
+    label: 'Method 2 — Z(HV–LV1+LV2), Z(HV–LV1), Z(HV–LV2)',
+    xLabel: 'Z (HV – LV1+LV2)',
+    xHint: 'HV to both LV windings shorted together',
     yLabel: 'Z (HV – LV1)',
     zLabel: 'Z (HV – LV2)',
   },
 ];
 
 export const DEFAULT_VALUES = {
-  method: 'method1',
+  method: 'method2',
   X: '10',
   Y: '8',
   Z: '6',
