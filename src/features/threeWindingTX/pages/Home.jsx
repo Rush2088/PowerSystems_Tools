@@ -7,7 +7,9 @@ export default function Home() {
   const [values, setValues] = useState(DEFAULT_VALUES);
 
   const { result, error } = useMemo(() => {
-    const validation = validateInputs(values);
+    // Pick the active X based on which radio is selected
+    const xValue = values.method === 'method2' ? values.X_lv : values.X_hv;
+    const validation = validateInputs({ ...values, X: xValue });
     if (!validation.valid) return { result: null, error: validation.message };
     const calc = calculateThreeWindingTX(validation.parsed);
     if (calc.error) return { result: null, error: calc.error };

@@ -1,14 +1,45 @@
-import { METHODS } from '../utils/threeWindingTXCalc';
-
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
-function Row({ label, name, unit, hint, values, onChange }) {
+function RadioBox({ label, name, methodId, activeMethod, onSelect, unit, values, onChange }) {
+  const isActive = activeMethod === methodId;
+  return (
+    <div
+      className={`summary-chip cursor-pointer transition-opacity ${!isActive ? 'opacity-40' : ''}`}
+      onClick={onSelect}
+    >
+      <div className="flex items-center gap-2 summary-label select-none">
+        <input
+          type="radio"
+          name="tx-method"
+          checked={isActive}
+          onChange={onSelect}
+          className="accent-cyan-400 w-3.5 h-3.5 flex-none cursor-pointer"
+          onClick={e => e.stopPropagation()}
+        />
+        <span>{label}</span>
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="summary-input-wrap flex-none">
+          <input
+            className="input-inline w-[7rem]"
+            type="number"
+            step="any"
+            disabled={!isActive}
+            value={values[name]}
+            onChange={e => { e.stopPropagation(); onChange(name, e.target.value); }}
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+        <span className="unit-base shrink-0">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, name, unit, values, onChange }) {
   return (
     <div className="summary-chip">
-      <div className="summary-label">
-        <div>{label}</div>
-        {hint && <div className="text-[10px] text-slate-400 mt-0.5">{hint}</div>}
-      </div>
+      <div className="summary-label">{label}</div>
       <div className="flex items-center justify-between gap-3">
         <div className="summary-input-wrap flex-none">
           <input
@@ -50,8 +81,6 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
     setValues(prev => ({ ...prev, [name]: value }));
   }
 
-  const method = METHODS.find(m => m.id === values.method) ?? METHODS[0];
-
   return (
     <section className="glass-card p-4 sm:p-5">
 
@@ -60,29 +89,10 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[1.85rem]">
           3-Winding TX — Equiv. Imp.
         </h1>
-        <p className="mt-1 text-sm text-slate-300">
-          T-equivalent Impedances
-        </p>
+        <p className="mt-1 text-sm text-slate-300">T-equivalent Impedances</p>
         <p className="mt-0.5 text-xs text-slate-400">
           All impedances represented % on LV Winding MVA base
         </p>
-      </div>
-
-      {/* Method dropdown — left-aligned, 50% width */}
-      <div className="mb-4">
-        <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-          Known test impedances
-        </p>
-        <select
-          className="input-inline w-full text-left"
-          style={{ textAlignLast: 'left' }}
-          value={values.method}
-          onChange={e => update('method', e.target.value)}
-        >
-          {METHODS.map(m => (
-            <option key={m.id} value={m.id}>{m.label}</option>
-          ))}
-        </select>
       </div>
 
       {/* Error banner */}
@@ -92,25 +102,44 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
         </div>
       )}
 
-      {/* Inputs — 2×2 grid
-          Top row:    Z(HV–LV1)  |  Z(HV–LV2)
-          Bottom row: method-dependent X (full width) */}
+      {/* Row 1 — radio-controlled: select which measurement is known */}
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-        Test Impedances
+        Test Impedances — select known measurement
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <Row label={method.yLabel} name="Y" unit="%" values={values} onChange={update} />
-        <Row label={method.zLabel} name="Z" unit="%" values={values} onChange={update} />
-        <div className="col-span-1">
-          <Row label={method.xLabel} name="X" unit="%" hint={method.xHint} values={values} onChange={update} />
-        </div>
+        <RadioBox
+          label="Z (LV1 – LV2)"
+          name="X_lv"
+          methodId="method2"
+          activeMethod={values.method}
+          onSelect={() => update('method', 'method2')}
+          unit="%"
+          values={values}
+          onChange={update}
+        />
+        <RadioBox
+          label="Z (HV – LV1+LV2)"
+          name="X_hv"
+          methodId="method1"
+          activeMethod={values.method}
+          onSelect={() => update('method', 'method1')}
+          unit="%"
+          values={values}
+          onChange={update}
+        />
+      </div>
+
+      {/* Row 2 — always active */}
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <Row label="Z (HV – LV1)" name="Y" unit="%" values={values} onChange={update} />
+        <Row label="Z (HV – LV2)" name="Z" unit="%" values={values} onChange={update} />
       </div>
 
       <div className="divider" />
 
       {/* Results */}
       {result ? (
-        <div className="space-y-5">
+        <div className="space-y-4">
 
           {/* Negative impedance notice */}
           {result.hasNegative && (
@@ -122,7 +151,7 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
             </div>
           )}
 
-          {/* T-Equivalent Impedances */}
+          {/* T-Equivalent star impedances */}
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
               T-Equivalent Impedances
@@ -134,28 +163,33 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
             </div>
           </div>
 
-          {/* Z_eq */}
+          {/* Z_eq and Z(LV1-LV2) derived */}
           {result.Z_eq !== null ? (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3">
               <Tile
-                label="Z_eq = Z_HV + (Z_LV1 ∥ Z_LV2)"
+                label="Z_eq = Z (HV – LV1+LV2)"
                 value={result.Z_eq}
                 unit="%"
                 primary
                 sub="on LV MVA base"
               />
-              <div className="result-tile result-tile-alert flex items-start">
-                <div className="text-xs text-slate-400 space-y-1">
-                  <div className="text-slate-300 font-semibold text-sm mb-1">Formula</div>
-                  <div className="font-mono">Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
-                </div>
-              </div>
+              <Tile
+                label="Z (LV1 – LV2)"
+                value={result.Z_lv}
+                unit="%"
+                sub="on LV MVA base"
+              />
             </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
               {result.eqNote}
             </div>
           )}
+
+          {/* Formula footnote */}
+          <div className="text-[10px] text-slate-500 font-mono pt-1">
+            Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)
+          </div>
 
         </div>
       ) : (

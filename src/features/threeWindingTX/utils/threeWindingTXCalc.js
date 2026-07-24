@@ -34,10 +34,11 @@ export const METHODS = [
 ];
 
 export const DEFAULT_VALUES = {
-  method: 'method2',
-  X: '10',
-  Y: '8',
-  Z: '6',
+  method: 'method2',   // 'method2' = Z(LV1-LV2) known; 'method1' = Z(HV-LV1+LV2) known
+  X_lv: '4',           // Z(LV1-LV2)
+  X_hv: '10',          // Z(HV-LV1+LV2)
+  Y: '8',              // Z(HV-LV1)
+  Z: '6',              // Z(HV-LV2)
 };
 
 export function validateInputs(values) {
@@ -85,6 +86,7 @@ export function calculateThreeWindingTX({ X, Y, Z, method }) {
   }
 
   const hasNegative = H < 0 || L1 < 0 || L2 < 0;
+  const Z_lv = L1 + L2;   // Z(LV1-LV2) with HV open = sum of LV star legs
 
-  return { H, L1, L2, Z_eq, eqNote, hasNegative };
+  return { H, L1, L2, Z_eq, Z_lv, eqNote, hasNegative };
 }
