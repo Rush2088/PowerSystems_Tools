@@ -21,13 +21,13 @@
 // split is only computed when all legs are positive.
 
 export const DEFAULT_VALUES = {
-  method: 'method1',   // 'method2' = Z(LV1-LV2) known; 'method1' = Z(HV-LV1+LV2) known
-  X_lv: '13',          // Z(LV1-LV2)
-  X_hv: '3.7',         // Z(HV-LV1+LV2)
+  method: 'method2',   // 'method2' = Z(LV1-LV2) known; 'method1' = Z(HV-LV1+LV2) known
+  X_lv: '13.39',       // Z(LV1-LV2) — active by default
+  X_hv: '3.65',        // Z(HV-LV1+LV2) — greyed out by default
   Y: '7.1',            // Z(HV-LV1)
   Z: '7',              // Z(HV-LV2)
   pTotal: '55',        // total load loss, kW
-  mvaBase: '3.65',     // LV winding MVA base (reference)
+  mvaBase: '3.65',     // LV winding MVA base (see note 1)
 };
 
 export function validateInputs(values) {

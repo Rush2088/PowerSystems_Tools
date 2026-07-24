@@ -113,11 +113,22 @@ export default function ThreeWdgTxCard({ values, setValues, result, error }) {
         </div>
       )}
 
-      {/* Row 1 — radio-controlled: select which measurement is known */}
+      {/* Row 1 — LV MVA base */}
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
         Test Impedances — select known measurement
       </p>
       <div className="grid grid-cols-2 gap-3">
+        <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" sub="see note 1" values={values} onChange={update} />
+      </div>
+
+      {/* Row 2 — always active */}
+      <div className="grid grid-cols-2 gap-3 mt-3">
+        <Row label="Z (HV – LV1)" name="Y" unit="%" sub="% on LV MVA Base" values={values} onChange={update} />
+        <Row label="Z (HV – LV2)" name="Z" unit="%" sub="% on LV MVA Base" values={values} onChange={update} />
+      </div>
+
+      {/* Row 3 — radio-controlled: select which measurement is known */}
+      <div className="grid grid-cols-2 gap-3 mt-3">
         <RadioBox
           label="Z (LV1 – LV2)"
           name="X_lv"
@@ -140,19 +151,12 @@ export default function ThreeWdgTxCard({ values, setValues, result, error }) {
         />
       </div>
 
-      {/* Row 2 — always active */}
-      <div className="grid grid-cols-2 gap-3 mt-3">
-        <Row label="Z (HV – LV1)" name="Y" unit="%" sub="% on LV MVA Base" values={values} onChange={update} />
-        <Row label="Z (HV – LV2)" name="Z" unit="%" sub="% on LV MVA Base" values={values} onChange={update} />
-      </div>
-
-      {/* Row 3 — load loss & rating */}
+      {/* Row 4 — load loss */}
       <p className="mt-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
         Load Loss &amp; Rating
       </p>
       <div className="grid grid-cols-2 gap-3">
         <Row label="Total Load Loss" name="pTotal" unit="kW" sub="HV at 2× LV MVA base" values={values} onChange={update} />
-        <Row label="LV Winding MVA Base" name="mvaBase" unit="MVA" sub="reference" values={values} onChange={update} />
       </div>
 
       <div className="divider" />
@@ -234,8 +238,8 @@ export default function ThreeWdgTxCard({ values, setValues, result, error }) {
           {/* Notes */}
           <div className="text-xs text-slate-200 pt-1 space-y-1">
             <div className="font-semibold text-slate-100 mb-1">Notes:</div>
-            <div>1. Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
-            <div>2. TX MVA ratings assumed: LV1 = LV2 = S; HV = 2 × S &nbsp;→&nbsp; Z_eq (HV base) = 2 × Z_eq (LV base)</div>
+            <div>1. TX MVA ratings assumed: LV1 = LV2 = S; HV = 2 × S &nbsp;→&nbsp; Z_eq (HV base) = 2 × Z_eq (LV base)</div>
+            <div>2. Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
             <div>3. Loss split assumes FAT test condition — HV at 2× LV MVA base: P_total = 4·P_HV + P_LV1 + P_LV2</div>
           </div>
 
