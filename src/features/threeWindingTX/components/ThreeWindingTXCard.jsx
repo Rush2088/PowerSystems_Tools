@@ -74,7 +74,7 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
           Known test impedances
         </p>
         <select
-          className="input-inline w-1/2"
+          className="input-inline w-full"
           value={values.method}
           onChange={e => update('method', e.target.value)}
         >
@@ -100,7 +100,7 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
       <div className="grid grid-cols-2 gap-3">
         <Row label={method.yLabel} name="Y" unit="%" values={values} onChange={update} />
         <Row label={method.zLabel} name="Z" unit="%" values={values} onChange={update} />
-        <div className="col-span-2">
+        <div className="col-span-1">
           <Row label={method.xLabel} name="X" unit="%" hint={method.xHint} values={values} onChange={update} />
         </div>
       </div>

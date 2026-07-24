@@ -44,7 +44,7 @@ const TOOLS = [
   },
   {
     title: '3-Winding TX — Equiv. Imp.',
-    description: 'T-equivalent Impedances & Thevenin Z_eq from two calculation methods.',
+    description: 'T-equivalent Impedances from two calculation methods.',
     route: '/three-winding-tx',
   },
 ];
