@@ -2,34 +2,34 @@
  * 3-Winding Transformer — T-Equivalent Star Impedance Calculator
  * All impedances in % on LV winding MVA base.
  *
- * Method 1  Known: X = Z(H–L1L2), Y = Z(H–L1), Z = Z(H–L2)
+ * Method 1  Known: X = Z(HV–LV1LV2), Y = Z(HV–LV1), Z = Z(HV–LV2)
  *   Solves quadratic arising from the three pair-impedance equations.
  *   discriminant = (2X)² – 4(XY + XZ – YZ)
- *   H = (2X – √discriminant) / 2
+ *   HV = (2X – √discriminant) / 2
  *
- * Method 2  Known: X = Z(L1–L2), Y = Z(H–L1), Z = Z(H–L2)
- *   Closed-form: H = (Y+Z–X)/2, L1 = (X+Y–Z)/2, L2 = (X+Z–Y)/2
+ * Method 2  Known: X = Z(LV1–LV2), Y = Z(HV–LV1), Z = Z(HV–LV2)
+ *   Closed-form: HV = (Y+Z–X)/2, LV1 = (X+Y–Z)/2, LV2 = (X+Z–Y)/2
  *
  * Negative winding impedances are physically valid — no error is raised for them.
- * H: HV winding   L1: LV winding 1   L2: LV winding 2
+ * HV: HV winding   LV1: LV winding 1   LV2: LV winding 2
  */
 
 export const METHODS = [
   {
     id: 'method1',
-    label: 'Method 1 — Known: Z(H–L1L2), Z(H–L1), Z(H–L2)',
-    xLabel: 'Z (H – L1L2)',
-    xHint: 'HV to both LV windings shorted',
-    yLabel: 'Z (H – L1)',
-    zLabel: 'Z (H – L2)',
+    label: 'Method 1 — Known: Z(HV–LV1+LV2), Z(HV–LV1), Z(HV–LV2)',
+    xLabel: 'Z (HV – LV1+LV2)',
+    xHint: 'HV to both LV windings shorted together',
+    yLabel: 'Z (HV – LV1)',
+    zLabel: 'Z (HV – LV2)',
   },
   {
     id: 'method2',
-    label: 'Method 2 — Known: Z(L1–L2), Z(H–L1), Z(H–L2)',
-    xLabel: 'Z (L1 – L2)',
-    xHint: 'Between LV windings, HV open',
-    yLabel: 'Z (H – L1)',
-    zLabel: 'Z (H – L2)',
+    label: 'Method 2 — Known: Z(LV1–LV2), Z(HV–LV1), Z(HV–LV2)',
+    xLabel: 'Z (LV1 – LV2)',
+    xHint: 'Between LV windings, HV open-circuited',
+    yLabel: 'Z (HV – LV1)',
+    zLabel: 'Z (HV – LV2)',
   },
 ];
 

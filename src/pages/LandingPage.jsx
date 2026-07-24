@@ -43,8 +43,8 @@ const TOOLS = [
     route: '/3wdg-tx-loss',
   },
   {
-    title: '3-Winding TX — Equiv. Impedance',
-    description: 'T-equivalent star impedances & Thevenin Z_eq from two methods of known test data.',
+    title: '3-Winding TX — Equiv. Imp.',
+    description: 'T-equivalent Impedances & Thevenin Z_eq from two calculation methods.',
     route: '/three-winding-tx',
   },
 ];

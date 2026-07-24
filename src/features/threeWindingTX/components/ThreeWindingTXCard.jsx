@@ -58,20 +58,23 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
       {/* Title */}
       <div className="mb-5">
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[1.85rem]">
-          3-Winding TX — Equiv. Impedance
+          3-Winding TX — Equiv. Imp.
         </h1>
         <p className="mt-1 text-sm text-slate-300">
-          T-equivalent star impedances &amp; Thevenin Z<sub>eq</sub> · all values in % on LV MVA base
+          T-equivalent Impedances
+        </p>
+        <p className="mt-0.5 text-xs text-slate-400">
+          All impedances represented % on LV Winding MVA base
         </p>
       </div>
 
-      {/* Method dropdown */}
+      {/* Method dropdown — left-aligned, 50% width */}
       <div className="mb-4">
         <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
           Known test impedances
         </p>
         <select
-          className="input-inline w-full"
+          className="input-inline w-1/2"
           value={values.method}
           onChange={e => update('method', e.target.value)}
         >
@@ -88,14 +91,18 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
         </div>
       )}
 
-      {/* Inputs — labels swap with method */}
+      {/* Inputs — 2×2 grid
+          Top row:    Z(HV–LV1)  |  Z(HV–LV2)
+          Bottom row: method-dependent X (full width) */}
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
         Test Impedances
       </p>
-      <div className="flex flex-col gap-3">
-        <Row label={method.xLabel} name="X" unit="%" hint={method.xHint}         values={values} onChange={update} />
-        <Row label={method.yLabel} name="Y" unit="%" hint="HV to LV winding 1"   values={values} onChange={update} />
-        <Row label={method.zLabel} name="Z" unit="%" hint="HV to LV winding 2"   values={values} onChange={update} />
+      <div className="grid grid-cols-2 gap-3">
+        <Row label={method.yLabel} name="Y" unit="%" values={values} onChange={update} />
+        <Row label={method.zLabel} name="Z" unit="%" values={values} onChange={update} />
+        <div className="col-span-2">
+          <Row label={method.xLabel} name="X" unit="%" hint={method.xHint} values={values} onChange={update} />
+        </div>
       </div>
 
       <div className="divider" />
@@ -114,49 +121,44 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
             </div>
           )}
 
-          {/* Star equivalent impedances */}
+          {/* T-Equivalent Impedances */}
           <div>
             <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-              T-Equivalent Star Impedances
+              T-Equivalent Impedances
             </p>
             <div className="grid grid-cols-3 gap-3">
-              <Tile label="Z_H  (HV)"   value={result.H}  unit="%" sub="on LV MVA base" />
-              <Tile label="Z_L1 (LV1)"  value={result.L1} unit="%" sub="on LV MVA base" />
-              <Tile label="Z_L2 (LV2)"  value={result.L2} unit="%" sub="on LV MVA base" />
+              <Tile label="Z_HV"  value={result.H}  unit="%" sub="on LV MVA base" />
+              <Tile label="Z_LV1" value={result.L1} unit="%" sub="on LV MVA base" />
+              <Tile label="Z_LV2" value={result.L2} unit="%" sub="on LV MVA base" />
             </div>
           </div>
 
-          {/* Thevenin equivalent */}
-          <div>
-            <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-cyan-400">
-              Thevenin Equivalent Impedance (from HV side)
-            </p>
-            {result.Z_eq !== null ? (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Tile
-                  label="Z_eq = Z_H + (Z_L1 ∥ Z_L2)"
-                  value={result.Z_eq}
-                  unit="%"
-                  primary
-                  sub="on LV MVA base"
-                />
-                <div className="result-tile result-tile-alert flex items-start">
-                  <div className="text-xs text-slate-400 space-y-1">
-                    <div className="text-slate-300 font-semibold text-sm mb-1">Formula</div>
-                    <div className="font-mono">Z_eq = Z_H + (Z_L1 · Z_L2) / (Z_L1 + Z_L2)</div>
-                    <div className="text-[10px] mt-2 text-slate-500">
-                      Equivalent impedance seen from HV terminals with both LV windings in parallel.
-                      Used for fault level calculations on the HV bus.
-                    </div>
+          {/* Z_eq */}
+          {result.Z_eq !== null ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Tile
+                label="Z_eq = Z_HV + (Z_LV1 ∥ Z_LV2)"
+                value={result.Z_eq}
+                unit="%"
+                primary
+                sub="on LV MVA base"
+              />
+              <div className="result-tile result-tile-alert flex items-start">
+                <div className="text-xs text-slate-400 space-y-1">
+                  <div className="text-slate-300 font-semibold text-sm mb-1">Formula</div>
+                  <div className="font-mono">Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)</div>
+                  <div className="text-[10px] mt-2 text-slate-500">
+                    Equivalent impedance seen from HV terminals with both LV windings in parallel.
+                    Used for fault level calculations on the HV bus.
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
-                {result.eqNote}
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+              {result.eqNote}
+            </div>
+          )}
 
         </div>
       ) : (
