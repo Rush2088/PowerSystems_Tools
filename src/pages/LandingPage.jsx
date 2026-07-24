@@ -47,6 +47,11 @@ const TOOLS = [
     description: 'T-equivalent Impedances.',
     route: '/three-winding-tx',
   },
+  {
+    title: '3-Winding TX',
+    description: 'Calculate Tee-Equivalent Impedances and Split of Winding Losses.',
+    route: '/3-winding-tx',
+  },
 ];
 
 const COLS = 2; // grid columns on sm+

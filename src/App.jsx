@@ -9,6 +9,7 @@ import KtFactorHome from './features/ktFactor/pages/Home';
 import PlotDataExtractorHome from './features/plotDataExtractor/pages/Home';
 import ThreewdgTxLossHome from './features/threewdgTxLoss/pages/Home';
 import ThreeWindingTXHome from './features/threeWindingTX/pages/Home';
+import ThreeWdgTxHome from './features/threeWdgTx/pages/Home';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
       <Route path="/plot-data-extractor" element={<PlotDataExtractorHome />} />
       <Route path="/3wdg-tx-loss"        element={<ThreewdgTxLossHome />} />
       <Route path="/three-winding-tx"    element={<ThreeWindingTXHome />} />
+      <Route path="/3-winding-tx"        element={<ThreeWdgTxHome />} />
       <Route path="*"                    element={<Navigate to="/" replace />} />
     </Routes>
   );
