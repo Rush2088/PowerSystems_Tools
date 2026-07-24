@@ -42,6 +42,11 @@ const TOOLS = [
     description: 'Star equivalent impedances & per-winding load loss split for 3-winding transformers.',
     route: '/3wdg-tx-loss',
   },
+  {
+    title: '3-Winding TX — Equiv. Impedance',
+    description: 'T-equivalent star impedances & Thevenin Z_eq from two methods of known test data.',
+    route: '/three-winding-tx',
+  },
 ];
 
 const COLS = 2; // grid columns on sm+
