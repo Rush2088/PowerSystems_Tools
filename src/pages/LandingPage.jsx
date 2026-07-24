@@ -44,7 +44,7 @@ const TOOLS = [
   },
   {
     title: '3-Winding TX — Equiv. Imp.',
-    description: 'T-equivalent Impedances from two calculation methods.',
+    description: 'T-equivalent Impedances.',
     route: '/three-winding-tx',
   },
 ];

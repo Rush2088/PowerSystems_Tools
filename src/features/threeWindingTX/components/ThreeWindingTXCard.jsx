@@ -7,16 +7,19 @@ function RadioBox({ label, name, methodId, activeMethod, onSelect, unit, values,
       className={`summary-chip cursor-pointer transition-opacity ${!isActive ? 'opacity-40' : ''}`}
       onClick={onSelect}
     >
-      <div className="flex items-center gap-2 summary-label select-none">
-        <input
-          type="radio"
-          name="tx-method"
-          checked={isActive}
-          onChange={onSelect}
-          className="accent-cyan-400 w-3.5 h-3.5 flex-none cursor-pointer"
-          onClick={e => e.stopPropagation()}
-        />
-        <span>{label}</span>
+      <div className="summary-label select-none">
+        <div className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="tx-method"
+            checked={isActive}
+            onChange={onSelect}
+            className="accent-cyan-400 w-3.5 h-3.5 flex-none cursor-pointer"
+            onClick={e => e.stopPropagation()}
+          />
+          <span>{label}</span>
+        </div>
+        <div className="text-xs text-slate-200 mt-0.5 ml-5">% on LV MVA Base</div>
       </div>
       <div className="flex items-center justify-between gap-3">
         <div className="summary-input-wrap flex-none">
@@ -39,7 +42,10 @@ function RadioBox({ label, name, methodId, activeMethod, onSelect, unit, values,
 function Row({ label, name, unit, values, onChange }) {
   return (
     <div className="summary-chip">
-      <div className="summary-label">{label}</div>
+      <div className="summary-label">
+        <div>{label}</div>
+        <div className="text-xs text-slate-200 mt-0.5">% on LV MVA Base</div>
+      </div>
       <div className="flex items-center justify-between gap-3">
         <div className="summary-input-wrap flex-none">
           <input
@@ -69,7 +75,7 @@ function Tile({ label, value, unit, primary, sub }) {
         {typeof value === 'number' ? value.toFixed(4) : value}{' '}
         <span className={`text-sm font-semibold ${primary ? 'text-white/70' : 'text-slate-400'}`}>{unit}</span>
       </div>
-      {sub && <div className="mt-1 text-[10px] text-slate-500">{sub}</div>}
+      {sub && <div className="mt-1 text-xs text-slate-200">{sub}</div>}
     </div>
   );
 }
@@ -187,7 +193,7 @@ export default function ThreeWindingTXCard({ values, setValues, result, error })
           )}
 
           {/* Formula footnote */}
-          <div className="text-[10px] text-slate-500 font-mono pt-1">
+          <div className="text-xs text-slate-200 font-mono pt-1">
             Z_eq = Z_HV + (Z_LV1 · Z_LV2) / (Z_LV1 + Z_LV2)
           </div>
 
