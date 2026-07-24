@@ -38,18 +38,8 @@ const TOOLS = [
     route: '/plot-data-extractor',
   },
   {
-    title: '3-Winding TX — Loss Breakdown',
-    description: 'Star equivalent impedances & per-winding load loss split for 3-winding transformers.',
-    route: '/3wdg-tx-loss',
-  },
-  {
-    title: '3-Winding TX — Equiv. Imp.',
-    description: 'T-equivalent Impedances.',
-    route: '/three-winding-tx',
-  },
-  {
     title: '3-Winding TX',
-    description: 'Calculate Tee-Equivalent Impedances and Split of Winding Losses.',
+    description: 'Tee-Equivalent Impedances and Split of Winding Losses.',
     route: '/3-winding-tx',
   },
 ];
