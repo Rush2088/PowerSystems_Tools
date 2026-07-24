@@ -34,11 +34,11 @@ export const METHODS = [
 ];
 
 export const DEFAULT_VALUES = {
-  method: 'method2',   // 'method2' = Z(LV1-LV2) known; 'method1' = Z(HV-LV1+LV2) known
-  X_lv: '4',           // Z(LV1-LV2)
-  X_hv: '10',          // Z(HV-LV1+LV2)
-  Y: '8',              // Z(HV-LV1)
-  Z: '6',              // Z(HV-LV2)
+  method: 'method1',   // 'method2' = Z(LV1-LV2) known; 'method1' = Z(HV-LV1+LV2) known
+  X_lv: '13',          // Z(LV1-LV2)
+  X_hv: '3.7',         // Z(HV-LV1+LV2)
+  Y: '7.1',            // Z(HV-LV1)
+  Z: '7',              // Z(HV-LV2)
 };
 
 export function validateInputs(values) {
