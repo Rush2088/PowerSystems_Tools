@@ -156,7 +156,18 @@ export default function ThreeWdgTxCard({ values, setValues, result, error }) {
         Load Loss &amp; Rating
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <Row label="Total Load Loss" name="pTotal" unit="kW" sub="HV at 2× LV MVA base" values={values} onChange={update} />
+        <Row
+          label="Total Load Loss"
+          name="pTotal"
+          unit="kW"
+          sub={
+            Number(values.mvaBase) > 0
+              ? `at ${(Number(values.mvaBase) * 2).toLocaleString(undefined, { maximumFractionDigits: 2 })} MVA base (i.e. at 2 × LV Base)`
+              : 'at 2 × LV MVA base'
+          }
+          values={values}
+          onChange={update}
+        />
       </div>
 
       <div className="divider" />
