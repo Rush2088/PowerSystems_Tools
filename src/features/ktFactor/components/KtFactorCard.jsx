@@ -23,7 +23,7 @@ function InputField({ label, name, value, onChange, min, max, step, unit }) {
           value={value}
           onChange={e => onChange(name, e.target.value)}
         />
-        {unit && <span className="text-[11px] text-slate-400 shrink-0 w-6 text-right">{unit}</span>}
+        <span className="text-[11px] text-slate-400 shrink-0 w-6 text-right">{unit}</span>
       </div>
     </div>
   );
@@ -117,8 +117,8 @@ function FaultCurrentKtChart({ p }) {
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">With K<sub>T</sub> vs Without K<sub>T</sub></div>
       <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 4&ndash;20% · Grid Fault Current {p.gridKA} kA</div>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
+      <ResponsiveContainer width="100%" height={440}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 36, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis dataKey="x" type="number" domain={[4, 20]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
@@ -135,7 +135,7 @@ function FaultCurrentKtChart({ p }) {
             labelFormatter={v => `ZT = ${(+v).toFixed(2)}%`}
             formatter={(v, name) => [v.toFixed(2) + ' kA', name]}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
           <Line type="monotone" dataKey="withKt" name="With K_T" dot={false} stroke={MC} strokeWidth={2} />
           <Line type="monotone" dataKey="withoutKt" name="Without K_T" dot={false} stroke={SC} strokeWidth={2} />
         </LineChart>
@@ -153,8 +153,8 @@ function FaultCurrentGridChart({ p }) {
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">Grid Fault Level Compare (K<sub>T</sub> applied)</div>
       <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 4&ndash;20% · {p.gridKA} kA grid vs an infinitely strong grid</div>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
+      <ResponsiveContainer width="100%" height={440}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 36, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis dataKey="x" type="number" domain={[4, 20]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
@@ -171,7 +171,7 @@ function FaultCurrentGridChart({ p }) {
             labelFormatter={v => `ZT = ${(+v).toFixed(2)}%`}
             formatter={(v, name) => [v.toFixed(2) + ' kA', name]}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
           <Line type="monotone" dataKey="withKt" name={`${p.gridKA} kA Grid Fault Level`} dot={false} stroke={MC} strokeWidth={2} />
           <Line type="monotone" dataKey="infGridKt" name="Inf. Grid Fault (Zgrid=0)" dot={false} stroke={AC} strokeWidth={2} strokeDasharray="4 3" />
         </LineChart>
