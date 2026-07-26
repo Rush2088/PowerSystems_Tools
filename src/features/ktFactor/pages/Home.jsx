@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import KtFactorCard from '../components/KtFactorCard';
-import { DEFAULT_MAIN, DEFAULT_SUT } from '../utils/ktFactorCalc';
+import { DEFAULT_MAIN } from '../utils/ktFactorCalc';
 import { useHomeNavKey } from '../../../hooks/useHomeNavKey';
 
 export default function Home() {
   const [mainValues, setMainValues] = useState(DEFAULT_MAIN);
-  const [sutValues,  setSutValues]  = useState(DEFAULT_SUT);
 
   useHomeNavKey();
 
@@ -29,7 +28,6 @@ export default function Home() {
       <div className="mx-auto max-w-[1100px]">
         <KtFactorCard
           mainValues={mainValues} setMainValues={setMainValues}
-          sutValues={sutValues}   setSutValues={setSutValues}
         />
       </div>
     </main>

@@ -3,31 +3,24 @@
 // where x_T = X_T (pu), derived from Z_T% and X/R ratio
 
 export const DEFAULT_MAIN = {
-  mva: '120',
-  hv:  '330',
-  lv:  '33',
-  zt:  '12',
-  xr:  '35',
-  c:   '1.10',
-};
-
-export const DEFAULT_SUT = {
-  mva: '7',
-  hv:  '33',
-  lv:  '0.69',
-  zt:  '7',
-  xr:  '6',
-  c:   '1.10',
+  mva:    '120',
+  hv:     '330',
+  lv:     '33',
+  zt:     '12',
+  xr:     '35',
+  c:      '1.10',
+  gridKA: '50',
 };
 
 export function validateTx(values) {
   const p = {
-    mva: Number(values.mva),
-    hv:  Number(values.hv),
-    lv:  Number(values.lv),
-    zt:  Number(values.zt),
-    xr:  Number(values.xr),
-    c:   Number(values.c),
+    mva:    Number(values.mva),
+    hv:     Number(values.hv),
+    lv:     Number(values.lv),
+    zt:     Number(values.zt),
+    xr:     Number(values.xr),
+    c:      Number(values.c),
+    gridKA: Number(values.gridKA),
   };
   const ok = Object.values(p).every(v => Number.isFinite(v) && v > 0);
   if (!ok) return { valid: false, message: 'Enter valid positive values.', parsed: p };
@@ -79,6 +72,56 @@ export function sweepC(p, n = 120) {
     const cv = 0.90 + (i / (n - 1)) * 0.25;
     const { kt } = calculateKT({ ...p, c: cv });
     return { x: cv, y: kt };
+  });
+}
+
+// ── Total fault current at the LV bus, for a given ZT% override ────────────
+// Reuses this page's own X/R-derived x_T (more precise than the Z%-only
+// approximation), on the same 100 MVA study base as the fault-calc feature.
+const S_BASE = 100e6;
+
+function faultCurrentAt(p, ztPct, considerKFactor, assumeGridZ0) {
+  const ztPu = ztPct / 100;
+  const rt = ztPu / Math.sqrt(1 + p.xr * p.xr);
+  const xt = p.xr * rt;
+  const kt = considerKFactor ? (0.95 * p.c) / (1 + 0.6 * xt) : 1;
+
+  const zTxOwnbase = ztPu * (S_BASE / (p.mva * 1e6));
+  const zTx = kt * zTxOwnbase;
+
+  let zGrid = 0;
+  if (!assumeGridZ0) {
+    const iHvBase = S_BASE / (Math.sqrt(3) * p.hv * 1e3);
+    const ifPu = (p.gridKA * 1e3) / iHvBase;
+    zGrid = p.c / ifPu;
+  }
+
+  const zTot = zTx + zGrid;
+  const iLvBase = S_BASE / (Math.sqrt(3) * p.lv * 1e3);
+  const ifPu = p.c / zTot;
+  return (ifPu * iLvBase) / 1000; // kA
+}
+
+/**
+ * Build sweep data for Fault Current vs ZT%, three series:
+ *  - withKt        : K_T correction applied
+ *  - withoutKt     : no K_T correction
+ *  - assumeGridZ0  : grid impedance = 0 (pure 1/Z reference), no K_T
+ * @param {object} p  - parsed values (includes gridKA)
+ * @param {number} n  - number of points
+ * @returns {Array<{x, withKt, withoutKt, assumeGridZ0}>}
+ */
+export function sweepFaultCurrent(p, n = 60) {
+  const zLo = Math.max(1, p.zt * 0.4);
+  const zHi = p.zt * 1.6;
+  return Array.from({ length: n }, (_, i) => {
+    const ztPct = zLo + (i / (n - 1)) * (zHi - zLo);
+    return {
+      x: ztPct,
+      withKt: faultCurrentAt(p, ztPct, true, false),
+      withoutKt: faultCurrentAt(p, ztPct, false, false),
+      assumeGridZ0: faultCurrentAt(p, ztPct, false, true),
+    };
   });
 }
 

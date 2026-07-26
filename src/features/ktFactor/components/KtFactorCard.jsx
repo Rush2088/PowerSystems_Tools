@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ReferenceDot, ResponsiveContainer, Label,
+  Tooltip, Legend, ReferenceDot, ResponsiveContainer, Label,
 } from 'recharts';
-import { validateTx, calculateKT, sweepZ, sweepC, fmtOhm } from '../utils/ktFactorCalc';
+import { validateTx, calculateKT, sweepZ, sweepC, sweepFaultCurrent, fmtOhm } from '../utils/ktFactorCalc';
 
 // ── Shared palette ──────────────────────────────────────────────────────────
-const MC  = '#38bdf8';   // sky-400 (main TX)
-const SC  = '#4ade80';   // green-400 (SUT)
+const MC  = '#38bdf8';   // sky-400 (main TX / With K_T)
+const SC  = '#4ade80';   // green-400 (Without K_T)
+const AC  = '#fbbf24';   // amber-400 (Assume Grid Z=0)
 const RED = '#f87171';   // red-400 (marker dot)
 
 // ── Compact input field ─────────────────────────────────────────────────────
@@ -130,6 +131,44 @@ function CChart({ p, res, accent }) {
   );
 }
 
+// ── Chart: Fault Current vs Transformer Impedance ──────────────────────────
+function FaultCurrentChart({ p }) {
+  const data = useMemo(() => sweepFaultCurrent(p), [p]);
+  const yVals = data.flatMap(d => [d.withKt, d.withoutKt, d.assumeGridZ0]);
+  const yMin  = 0;
+  const yMax  = +(Math.max(...yVals) * 1.05).toFixed(1);
+
+  return (
+    <div>
+      <div className="text-xs font-semibold text-slate-300 mb-0.5">Fault Current vs Transformer Impedance</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 0.4&times;&ndash;1.6&times; entered value · Grid Fault Current {p.gridKA} kA</div>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']}
+            tick={{ fill: '#94a3b8', fontSize: 9 }} tickCount={6}
+            tickFormatter={v => (+v).toFixed(1)}>
+            <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
+          </XAxis>
+          <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
+            tickFormatter={v => v.toFixed(0)} width={40}>
+            <Label value="kA" angle={-90} position="insideLeft" style={{ fill: '#64748b', fontSize: 10 }} />
+          </YAxis>
+          <Tooltip
+            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
+            labelFormatter={v => `ZT = ${(+v).toFixed(2)}%`}
+            formatter={(v, name) => [v.toFixed(2) + ' kA', name]}
+          />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Line type="monotone" dataKey="withKt" name="With K_T" dot={false} stroke={MC} strokeWidth={2} />
+          <Line type="monotone" dataKey="withoutKt" name="Without K_T" dot={false} stroke={SC} strokeWidth={2} />
+          <Line type="monotone" dataKey="assumeGridZ0" name="Assume Grid Z=0" dot={false} stroke={AC} strokeWidth={2} strokeDasharray="4 3" />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 // ── TX panel ─────────────────────────────────────────────────────────────────
 function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
   const validation = useMemo(() => validateTx(values), [values]);
@@ -177,6 +216,8 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
           min={1} max={100} step={1} unit="" />
         <InputField label="c (max)" name="c" value={values.c} onChange={update}
           min={0.9} max={1.15} step={0.01} unit="" />
+        <InputField label="Grid Fault Current" name="gridKA" value={values.gridKA} onChange={update}
+          min={0.1} max={200} step={0.1} unit="kA" />
       </div>
 
       {/* Result strip */}
@@ -187,6 +228,7 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
         <div className="flex flex-col gap-5 pt-2 border-t border-white/10">
           <ZChart p={p} res={res} accent={accent} />
           <CChart p={p} res={res} accent={accent} />
+          <FaultCurrentChart p={p} />
         </div>
       )}
     </div>
@@ -194,7 +236,7 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
 }
 
 // ── Main export ─────────────────────────────────────────────────────────────
-export default function KtFactorCard({ mainValues, setMainValues, sutValues, setSutValues }) {
+export default function KtFactorCard({ mainValues, setMainValues }) {
   return (
     <div className="flex flex-col gap-4">
       {/* Title */}
@@ -211,19 +253,11 @@ export default function KtFactorCard({ mainValues, setMainValues, sutValues, set
         </p>
       </div>
 
-      {/* Two panels side by side on lg+ */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <TxPanel
-          tag="Main TX" name="HV / MV transformer"
-          values={mainValues} setValues={setMainValues}
-          accent={MC} borderColor={MC}
-        />
-        <TxPanel
-          tag="SUT" name="Step-up / LV transformer"
-          values={sutValues} setValues={setSutValues}
-          accent={SC} borderColor={SC}
-        />
-      </div>
+      <TxPanel
+        tag="Main TX" name="HV / MV transformer"
+        values={mainValues} setValues={setMainValues}
+        accent={MC} borderColor={MC}
+      />
 
       {/* Formula footer */}
       <div className="glass-card p-4 text-xs text-slate-400 leading-relaxed">
