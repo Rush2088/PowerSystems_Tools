@@ -61,20 +61,6 @@ export function sweepZ(p, n = 120) {
   });
 }
 
-/**
- * Build sweep data for K_T vs c factor
- * @param {object} p  - parsed values
- * @param {number} n  - number of points
- * @returns {Array<{x, y}>}
- */
-export function sweepC(p, n = 120) {
-  return Array.from({ length: n }, (_, i) => {
-    const cv = 0.90 + (i / (n - 1)) * 0.25;
-    const { kt } = calculateKT({ ...p, c: cv });
-    return { x: cv, y: kt };
-  });
-}
-
 // ── Total fault current at the LV bus, for a given ZT% override ────────────
 // Reuses this page's own X/R-derived x_T (more precise than the Z%-only
 // approximation), on the same 100 MVA study base as the fault-calc feature.
@@ -111,9 +97,9 @@ function faultCurrentAt(p, ztPct, considerKFactor, assumeGridZ0) {
  * @param {number} n  - number of points
  * @returns {Array<{x, withKt, withoutKt, assumeGridZ0}>}
  */
-export function sweepFaultCurrent(p, n = 60) {
-  const zLo = Math.max(1, p.zt * 0.4);
-  const zHi = p.zt * 1.6;
+export function sweepFaultCurrent(p, n = 37) {
+  const zLo = 2;
+  const zHi = 20;
   return Array.from({ length: n }, (_, i) => {
     const ztPct = zLo + (i / (n - 1)) * (zHi - zLo);
     return {

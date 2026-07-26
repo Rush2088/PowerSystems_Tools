@@ -11,7 +11,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mx-auto mb-4 flex max-w-[1100px] items-center justify-between">
+      <div className="mx-auto mb-4 flex w-[60%] items-center justify-between">
         <Link to="/" className="primary-action-button gap-1.5 px-5 py-3 text-base">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" strokeWidth="2.5"
@@ -25,7 +25,7 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mx-auto max-w-[1100px]">
+      <div className="mx-auto w-[60%]">
         <KtFactorCard
           mainValues={mainValues} setMainValues={setMainValues}
         />

@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ReferenceDot, ResponsiveContainer, Label,
 } from 'recharts';
-import { validateTx, calculateKT, sweepZ, sweepC, sweepFaultCurrent, fmtOhm } from '../utils/ktFactorCalc';
+import { validateTx, calculateKT, sweepZ, sweepFaultCurrent, fmtOhm } from '../utils/ktFactorCalc';
 
 // ── Shared palette ──────────────────────────────────────────────────────────
 const MC  = '#38bdf8';   // sky-400 (main TX / With K_T)
@@ -95,42 +95,6 @@ function ZChart({ p, res, accent }) {
   );
 }
 
-// ── Chart: KT vs c ──────────────────────────────────────────────────────────
-function CChart({ p, res, accent }) {
-  const data  = useMemo(() => sweepC(p), [p]);
-  const yVals = data.map(d => d.y);
-  const yMin  = +(Math.min(...yVals) * 0.998).toFixed(4);
-  const yMax  = +(Math.max(...yVals) * 1.002).toFixed(4);
-
-  return (
-    <div>
-      <div className="text-xs font-semibold text-slate-300 mb-0.5">K<sub>T</sub> vs Voltage Factor c</div>
-      <div className="text-[10px] text-slate-500 mb-2">c swept 0.90–1.15 · fixed Z<sub>T</sub> &amp; MVA</div>
-      <ResponsiveContainer width="100%" height={170}>
-        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={[0.9, 1.15]}
-            tick={{ fill: '#94a3b8', fontSize: 9 }}
-            ticks={[0.90, 0.95, 1.00, 1.05, 1.10, 1.15]}
-            tickFormatter={v => (+v).toFixed(2)}>
-            <Label value="c factor" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
-          </XAxis>
-          <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
-            tickFormatter={v => v.toFixed(3)} width={48} />
-          <Tooltip
-            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
-            labelFormatter={v => `c = ${(+v).toFixed(3)}`}
-            formatter={v => [v.toFixed(4), 'KT']}
-          />
-          <Line type="monotone" dataKey="y" dot={false} stroke={accent} strokeWidth={2} />
-          <ReferenceDot x={p.c} y={res.kt} shape={<RefDot />}
-            label={{ value: `KT=${res.kt.toFixed(4)}`, fill: RED, fontSize: 10, dy: -10 }} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
 // ── Chart: Fault Current vs Transformer Impedance ──────────────────────────
 function FaultCurrentChart({ p }) {
   const data = useMemo(() => sweepFaultCurrent(p), [p]);
@@ -141,13 +105,14 @@ function FaultCurrentChart({ p }) {
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">Fault Current vs Transformer Impedance</div>
-      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 0.4&times;&ndash;1.6&times; entered value · Grid Fault Current {p.gridKA} kA</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 2&ndash;20% · Grid Fault Current {p.gridKA} kA</div>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']}
-            tick={{ fill: '#94a3b8', fontSize: 9 }} tickCount={6}
-            tickFormatter={v => (+v).toFixed(1)}>
+          <XAxis dataKey="x" type="number" domain={[2, 20]}
+            tick={{ fill: '#94a3b8', fontSize: 9 }}
+            ticks={[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]}
+            tickFormatter={v => (+v).toFixed(0)}>
             <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
           </XAxis>
           <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
@@ -227,7 +192,6 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
       {res && (
         <div className="flex flex-col gap-5 pt-2 border-t border-white/10">
           <ZChart p={p} res={res} accent={accent} />
-          <CChart p={p} res={res} accent={accent} />
           <FaultCurrentChart p={p} />
         </div>
       )}
@@ -242,7 +206,7 @@ export default function KtFactorCard({ mainValues, setMainValues }) {
       {/* Title */}
       <div className="glass-card p-4 sm:p-5">
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[1.75rem]">
-          Transformer Imp. Correction Factor (K Factor)
+          TX Fault, Impedance and Kt Factor Analysis
         </h1>
         <p className="mt-1 text-sm text-slate-300">
           IEC 60909 cl.6.3.3 K Factor Impact Analysis
