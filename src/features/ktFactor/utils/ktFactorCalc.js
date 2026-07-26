@@ -90,12 +90,12 @@ function faultCurrentAt(p, ztPct, considerKFactor, assumeGridZ0) {
 
 /**
  * Build sweep data for Fault Current vs ZT%, three series:
- *  - withKt        : K_T correction applied
- *  - withoutKt     : no K_T correction
- *  - assumeGridZ0  : grid impedance = 0 (pure 1/Z reference), no K_T
+ *  - withKt     : K_T correction applied, real (finite) grid impedance
+ *  - withoutKt  : no K_T correction, real (finite) grid impedance
+ *  - infGridKt  : K_T correction applied, grid impedance = 0 (infinite grid strength)
  * @param {object} p  - parsed values (includes gridKA)
  * @param {number} n  - number of points
- * @returns {Array<{x, withKt, withoutKt, assumeGridZ0}>}
+ * @returns {Array<{x, withKt, withoutKt, infGridKt}>}
  */
 export function sweepFaultCurrent(p, n = 37) {
   const zLo = 2;
@@ -106,7 +106,7 @@ export function sweepFaultCurrent(p, n = 37) {
       x: ztPct,
       withKt: faultCurrentAt(p, ztPct, true, false),
       withoutKt: faultCurrentAt(p, ztPct, false, false),
-      assumeGridZ0: faultCurrentAt(p, ztPct, false, true),
+      infGridKt: faultCurrentAt(p, ztPct, true, true),
     };
   });
 }

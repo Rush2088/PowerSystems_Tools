@@ -95,27 +95,29 @@ function ZChart({ p, res, accent }) {
   );
 }
 
-// ── Chart: Fault Current vs Transformer Impedance ──────────────────────────
-function FaultCurrentChart({ p }) {
+// ── Fault Current vs Transformer Impedance — shared axis config ───────────
+const FAULT_X_TICKS = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+const FAULT_Y_DOMAIN = [20, 100];
+const FAULT_Y_TICKS = [20, 40, 60, 80, 100];
+
+// ── Chart: Fault Current vs Transformer Impedance — With/Without K_T ──────
+function FaultCurrentKtChart({ p }) {
   const data = useMemo(() => sweepFaultCurrent(p), [p]);
-  const yVals = data.flatMap(d => [d.withKt, d.withoutKt, d.assumeGridZ0]);
-  const yMin  = 0;
-  const yMax  = +(Math.max(...yVals) * 1.05).toFixed(1);
 
   return (
     <div>
-      <div className="text-xs font-semibold text-slate-300 mb-0.5">Fault Current vs Transformer Impedance</div>
+      <div className="text-xs font-semibold text-slate-300 mb-0.5">With K<sub>T</sub> vs Without K<sub>T</sub></div>
       <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 2&ndash;20% · Grid Fault Current {p.gridKA} kA</div>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
           <XAxis dataKey="x" type="number" domain={[2, 20]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
-            ticks={[2, 4, 6, 8, 10, 12, 14, 16, 18, 20]}
+            ticks={FAULT_X_TICKS}
             tickFormatter={v => (+v).toFixed(0)}>
             <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
           </XAxis>
-          <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
+          <YAxis domain={FAULT_Y_DOMAIN} ticks={FAULT_Y_TICKS} tick={{ fill: '#94a3b8', fontSize: 9 }}
             tickFormatter={v => v.toFixed(0)} width={40}>
             <Label value="kA" angle={-90} position="insideLeft" style={{ fill: '#64748b', fontSize: 10 }} />
           </YAxis>
@@ -127,7 +129,42 @@ function FaultCurrentChart({ p }) {
           <Legend wrapperStyle={{ fontSize: 11 }} />
           <Line type="monotone" dataKey="withKt" name="With K_T" dot={false} stroke={MC} strokeWidth={2} />
           <Line type="monotone" dataKey="withoutKt" name="Without K_T" dot={false} stroke={SC} strokeWidth={2} />
-          <Line type="monotone" dataKey="assumeGridZ0" name="Assume Grid Z=0" dot={false} stroke={AC} strokeWidth={2} strokeDasharray="4 3" />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// ── Chart: Fault Current vs Transformer Impedance — Grid strength compare ──
+// Both series apply K_T; only the grid impedance assumption differs.
+function FaultCurrentGridChart({ p }) {
+  const data = useMemo(() => sweepFaultCurrent(p), [p]);
+
+  return (
+    <div>
+      <div className="text-xs font-semibold text-slate-300 mb-0.5">Grid Fault Level Compare (K<sub>T</sub> applied)</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 2&ndash;20% · {p.gridKA} kA grid vs an infinitely strong grid</div>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+          <XAxis dataKey="x" type="number" domain={[2, 20]}
+            tick={{ fill: '#94a3b8', fontSize: 9 }}
+            ticks={FAULT_X_TICKS}
+            tickFormatter={v => (+v).toFixed(0)}>
+            <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
+          </XAxis>
+          <YAxis domain={FAULT_Y_DOMAIN} ticks={FAULT_Y_TICKS} tick={{ fill: '#94a3b8', fontSize: 9 }}
+            tickFormatter={v => v.toFixed(0)} width={40}>
+            <Label value="kA" angle={-90} position="insideLeft" style={{ fill: '#64748b', fontSize: 10 }} />
+          </YAxis>
+          <Tooltip
+            contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
+            labelFormatter={v => `ZT = ${(+v).toFixed(2)}%`}
+            formatter={(v, name) => [v.toFixed(2) + ' kA', name]}
+          />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Line type="monotone" dataKey="withKt" name={`${p.gridKA} kA Grid Fault Level`} dot={false} stroke={MC} strokeWidth={2} />
+          <Line type="monotone" dataKey="infGridKt" name="Inf. Grid Fault (Zgrid=0)" dot={false} stroke={AC} strokeWidth={2} strokeDasharray="4 3" />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -192,7 +229,14 @@ function TxPanel({ tag, name, values, setValues, accent, borderColor }) {
       {res && (
         <div className="flex flex-col gap-5 pt-2 border-t border-white/10">
           <ZChart p={p} res={res} accent={accent} />
-          <FaultCurrentChart p={p} />
+
+          <div>
+            <div className="text-sm font-semibold text-white mb-2">Fault Current vs Transformer Impedance</div>
+            <div className="flex flex-col gap-5">
+              <FaultCurrentKtChart p={p} />
+              <FaultCurrentGridChart p={p} />
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -206,14 +250,10 @@ export default function KtFactorCard({ mainValues, setMainValues }) {
       {/* Title */}
       <div className="glass-card p-4 sm:p-5">
         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-[1.75rem]">
-          TX Fault, Impedance and Kt Factor Analysis
+          TX Fault, Imp. &amp; Kt Factor Analysis
         </h1>
         <p className="mt-1 text-sm text-slate-300">
           IEC 60909 cl.6.3.3 K Factor Impact Analysis
-        </p>
-        <p className="mt-2 text-xs text-slate-500 leading-relaxed">
-          Corrects transformer impedance for short-circuit calculations. x<sub>T</sub> derived from Z<sub>T</sub>% and X/R ratio.
-          K<sub>T</sub>·Z<sub>T</sub>(Ω) is the corrected LV-referred impedance used in the fault loop.
         </p>
       </div>
 
@@ -223,13 +263,22 @@ export default function KtFactorCard({ mainValues, setMainValues }) {
         accent={MC} borderColor={MC}
       />
 
-      {/* Formula footer */}
+      {/* Notes */}
       <div className="glass-card p-4 text-xs text-slate-400 leading-relaxed">
-        <span className="font-semibold text-slate-300">IEC 60909-0 cl.6.3.3 Eq.(12): </span>
-        K<sub>T</sub> = 0.95 · c<sub>max</sub> / (1 + 0.6 · x<sub>T</sub>)
-        &nbsp;·&nbsp; x<sub>T</sub> = X<sub>T</sub> (pu) = √(Z<sub>T</sub>² − R<sub>T</sub>²)
-        &nbsp;·&nbsp; R<sub>T</sub> = Z<sub>T</sub> / √(1 + (X/R)²)
-        &nbsp;·&nbsp; Z<sub>T,corr</sub> = K<sub>T</sub> · Z<sub>T</sub>(pu) · V<sub>LV</sub>² / S<sub>rT</sub>
+        <div className="text-sm font-semibold text-slate-300 mb-2">Notes</div>
+        <ol className="list-decimal list-inside space-y-1.5">
+          <li>
+            Corrects transformer impedance for short-circuit calculations. x<sub>T</sub> derived from Z<sub>T</sub>% and X/R ratio.
+            K<sub>T</sub>·Z<sub>T</sub>(Ω) is the corrected LV-referred impedance used in the fault loop.
+          </li>
+          <li>
+            <span className="font-semibold text-slate-300">IEC 60909-0 cl.6.3.3 Eq.(12): </span>
+            K<sub>T</sub> = 0.95 · c<sub>max</sub> / (1 + 0.6 · x<sub>T</sub>)
+            &nbsp;·&nbsp; x<sub>T</sub> = X<sub>T</sub> (pu) = √(Z<sub>T</sub>² − R<sub>T</sub>²)
+            &nbsp;·&nbsp; R<sub>T</sub> = Z<sub>T</sub> / √(1 + (X/R)²)
+            &nbsp;·&nbsp; Z<sub>T,corr</sub> = K<sub>T</sub> · Z<sub>T</sub>(pu) · V<sub>LV</sub>² / S<sub>rT</sub>
+          </li>
+        </ol>
       </div>
     </div>
   );

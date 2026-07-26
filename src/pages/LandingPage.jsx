@@ -28,8 +28,8 @@ const TOOLS = [
     route: '/transformer-rx',
   },
   {
-    title: 'TX Fault, Impedance and Kt Factor Analysis',
-    description: 'IEC 60909 cl.6.3.3 Kₜ factor for Main TX with sensitivity charts.',
+    title: 'TX Fault, Imp. & Kt Factor Analysis',
+    description: 'IEC 60909 cl.6.3.3 Kₜ factor for TX with sensitivity charts.',
     route: '/kt-factor',
   },
   {
