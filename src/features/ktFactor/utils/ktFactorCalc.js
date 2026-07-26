@@ -97,8 +97,8 @@ function faultCurrentAt(p, ztPct, considerKFactor, assumeGridZ0) {
  * @param {number} n  - number of points
  * @returns {Array<{x, withKt, withoutKt, infGridKt}>}
  */
-export function sweepFaultCurrent(p, n = 37) {
-  const zLo = 2;
+export function sweepFaultCurrent(p, n = 33) {
+  const zLo = 4;
   const zHi = 20;
   return Array.from({ length: n }, (_, i) => {
     const ztPct = zLo + (i / (n - 1)) * (zHi - zLo);

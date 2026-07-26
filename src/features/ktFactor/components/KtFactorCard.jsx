@@ -105,9 +105,9 @@ function ZChart({ p, res, accent }) {
 }
 
 // ── Fault Current vs Transformer Impedance — shared axis config ───────────
-const FAULT_X_TICKS = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-const FAULT_Y_DOMAIN = [0, 60];
-const FAULT_Y_TICKS = [0, 20, 40, 60];
+const FAULT_X_TICKS = [4, 6, 8, 10, 12, 14, 16, 18, 20];
+const FAULT_Y_DOMAIN = [10, 60];
+const FAULT_Y_TICKS = [10, 20, 30, 40, 50, 60];
 
 // ── Chart: Fault Current vs Transformer Impedance — With/Without K_T ──────
 function FaultCurrentKtChart({ p }) {
@@ -116,11 +116,11 @@ function FaultCurrentKtChart({ p }) {
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">With K<sub>T</sub> vs Without K<sub>T</sub></div>
-      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 2&ndash;20% · Grid Fault Current {p.gridKA} kA</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 4&ndash;20% · Grid Fault Current {p.gridKA} kA</div>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={[2, 20]}
+          <XAxis dataKey="x" type="number" domain={[4, 20]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
             ticks={FAULT_X_TICKS}
             tickFormatter={v => (+v).toFixed(0)}>
@@ -152,11 +152,11 @@ function FaultCurrentGridChart({ p }) {
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">Grid Fault Level Compare (K<sub>T</sub> applied)</div>
-      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 2&ndash;20% · {p.gridKA} kA grid vs an infinitely strong grid</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 4&ndash;20% · {p.gridKA} kA grid vs an infinitely strong grid</div>
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={[2, 20]}
+          <XAxis dataKey="x" type="number" domain={[4, 20]}
             tick={{ fill: '#94a3b8', fontSize: 9 }}
             ticks={FAULT_X_TICKS}
             tickFormatter={v => (+v).toFixed(0)}>
