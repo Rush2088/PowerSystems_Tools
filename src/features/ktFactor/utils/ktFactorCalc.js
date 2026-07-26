@@ -52,8 +52,8 @@ export function calculateKT(p) {
  * @returns {Array<{x, y}>}
  */
 export function sweepZ(p, n = 120) {
-  const zLo = p.zt * 0.8;
-  const zHi = p.zt * 1.2;
+  const zLo = 4;
+  const zHi = 20;
   return Array.from({ length: n }, (_, i) => {
     const ztPct = zLo + (i / (n - 1)) * (zHi - zLo);
     const { kt } = calculateKT({ ...p, zt: ztPct });

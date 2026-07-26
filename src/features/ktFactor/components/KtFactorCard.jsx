@@ -58,28 +58,37 @@ function ResultStrip({ res, p, accent }) {
   );
 }
 
+const Z_CHART_X_TICKS = [4, 6, 8, 10, 12, 14, 16, 18, 20];
+
+// Evenly-spaced Y ticks — recharts' auto tick generator can otherwise
+// space ticks unevenly (or skip one) on an arbitrary decimal domain.
+function evenTicks(yMin, yMax, count = 5) {
+  const step = (yMax - yMin) / (count - 1);
+  return Array.from({ length: count }, (_, i) => +(yMin + step * i).toFixed(4));
+}
+
 // ── Chart: KT vs ZT% ────────────────────────────────────────────────────────
 function ZChart({ p, res, accent }) {
-  const zLo = +(p.zt * 0.80).toFixed(3);
-  const zHi = +(p.zt * 1.20).toFixed(3);
   const data  = useMemo(() => sweepZ(p), [p]);
   const yVals = data.map(d => d.y);
   const yMin  = +(Math.min(...yVals) * 0.998).toFixed(4);
   const yMax  = +(Math.max(...yVals) * 1.002).toFixed(4);
+  const yTicks = evenTicks(yMin, yMax);
 
   return (
     <div>
       <div className="text-xs font-semibold text-slate-300 mb-0.5">K<sub>T</sub> vs Z<sub>T</sub>%</div>
-      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept ±20% of entered value · fixed X/R &amp; c</div>
+      <div className="text-[10px] text-slate-500 mb-2">Z<sub>T</sub> swept 4&ndash;20% · fixed X/R &amp; c</div>
       <ResponsiveContainer width="100%" height={170}>
         <LineChart data={data} margin={{ top: 8, right: 10, bottom: 22, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-          <XAxis dataKey="x" type="number" domain={[zLo, zHi]}
-            tick={{ fill: '#94a3b8', fontSize: 9 }} tickCount={6}
-            tickFormatter={v => (+v).toFixed(1)}>
+          <XAxis dataKey="x" type="number" domain={[4, 20]}
+            tick={{ fill: '#94a3b8', fontSize: 9 }}
+            ticks={Z_CHART_X_TICKS}
+            tickFormatter={v => (+v).toFixed(0)}>
             <Label value="ZT (%)" offset={-12} position="insideBottom" style={{ fill: '#64748b', fontSize: 10 }} />
           </XAxis>
-          <YAxis domain={[yMin, yMax]} tick={{ fill: '#94a3b8', fontSize: 9 }}
+          <YAxis domain={[yMin, yMax]} ticks={yTicks} tick={{ fill: '#94a3b8', fontSize: 9 }}
             tickFormatter={v => v.toFixed(3)} width={48} />
           <Tooltip
             contentStyle={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, fontSize: 11 }}
@@ -97,8 +106,8 @@ function ZChart({ p, res, accent }) {
 
 // ── Fault Current vs Transformer Impedance — shared axis config ───────────
 const FAULT_X_TICKS = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-const FAULT_Y_DOMAIN = [20, 100];
-const FAULT_Y_TICKS = [20, 40, 60, 80, 100];
+const FAULT_Y_DOMAIN = [0, 60];
+const FAULT_Y_TICKS = [0, 20, 40, 60];
 
 // ── Chart: Fault Current vs Transformer Impedance — With/Without K_T ──────
 function FaultCurrentKtChart({ p }) {
