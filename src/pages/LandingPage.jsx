@@ -13,16 +13,6 @@ const TOOLS = [
     route: '/grid-impedance',
   },
   {
-    title: 'Arc Flash Calculator',
-    description: 'IEEE 1584-2018 incident energy & PPE.',
-    route: '/arc-flash',
-  },
-  {
-    title: 'Protection Coordination',
-    description: 'IEC / ANSI overcurrent TCC curve plotter.',
-    href: 'https://rush2088.github.io/tcc-protection-app/',
-  },
-  {
     title: 'Transformer R & X Calculator',
     description: 'Derive R, X from FAT data.',
     route: '/transformer-rx',
@@ -33,14 +23,24 @@ const TOOLS = [
     route: '/kt-factor',
   },
   {
-    title: 'Plot Data Extractor',
-    description: 'Extract data points from linear or log scale plots.',
-    route: '/plot-data-extractor',
-  },
-  {
     title: '3-Winding TX',
     description: 'Tee-Equivalent Impedances and Split of Winding Losses.',
     route: '/3-winding-tx',
+  },
+  {
+    title: 'Protection Coordination',
+    description: 'IEC / ANSI overcurrent TCC curve plotter.',
+    href: 'https://rush2088.github.io/tcc-protection-app/',
+  },
+  {
+    title: 'Arc Flash Calculator',
+    description: 'IEEE 1584-2018 incident energy & PPE.',
+    route: '/arc-flash',
+  },
+  {
+    title: 'Plot Data Extractor',
+    description: 'Extract data points from linear or log scale plots.',
+    route: '/plot-data-extractor',
   },
 ];
 
