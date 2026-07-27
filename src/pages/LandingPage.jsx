@@ -13,6 +13,11 @@ const TOOLS = [
     route: '/grid-impedance',
   },
   {
+    title: 'Protection Coordination Tool',
+    description: 'IEC / ANSI overcurrent TCC curve plotter.',
+    href: 'https://rush2088.github.io/tcc-protection-app/',
+  },
+  {
     title: 'Transformer R & X Calculator',
     description: 'Derive R, X from FAT data.',
     route: '/transformer-rx',
@@ -26,11 +31,6 @@ const TOOLS = [
     title: '3-Winding TX',
     description: 'Tee-Equivalent Impedances and Split of Winding Losses.',
     route: '/3-winding-tx',
-  },
-  {
-    title: 'Protection Coordination',
-    description: 'IEC / ANSI overcurrent TCC curve plotter.',
-    href: 'https://rush2088.github.io/tcc-protection-app/',
   },
   {
     title: 'Arc Flash Calculator',
@@ -145,7 +145,7 @@ export default function LandingPage() {
             Power System Tools
           </div>
           <p className="mt-5 text-base text-slate-300 sm:text-lg">
-            Collection of IEC / IEEE based tools for Power Systems and protection calculations
+            Collection of IEC / IEEE based tools for Power Systems and Protection
           </p>
         </div>
 
