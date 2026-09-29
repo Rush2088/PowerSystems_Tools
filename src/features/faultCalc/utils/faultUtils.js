@@ -6,6 +6,7 @@ export const HV_VOLTAGE_OPTIONS = [
   {value: '132', label: '132'},
   {value: '66', label: '66'},
   {value: '33', label: '33'},
+  {value: '22', label: '22'},
   {value: '11', label: '11'},
 ];
 
