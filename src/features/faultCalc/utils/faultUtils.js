@@ -25,8 +25,10 @@ export const LV_VOLTAGE_OPTIONS = [
 
 export const C_FACTOR_OPTIONS = [
   {value: '0.9', label: '0.9'},
+  {value: '0.94', label: '0.94'},
   {value: '0.95', label: '0.95'},
   {value: '1.0', label: '1.0'},
+  {value: '1.06', label: '1.06'},
   {value: '1.1', label: '1.1'},
 ];
 
